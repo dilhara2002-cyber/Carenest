@@ -1,0 +1,307 @@
+// CareNest - Web-Based Midwifery and Maternal Care Management System
+// Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User roles enum
+enum Role {
+  MOTHER
+  MIDWIFE
+  ADMIN
+}
+
+// Visit type enum
+enum VisitType {
+  ANTENATAL
+  POSTNATAL
+}
+
+// Status enums
+enum VisitStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum VaccinationStatus {
+  PENDING
+  COMPLETED
+  MISSED
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+// User Table - Base user authentication
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(MOTHER)
+  phone         String?
+  address       String?
+  profileImage  String?
+  language      String    @default("en") // en, si, ta
+  isActive      Boolean   @default(true)
+  notifyVisitReminders Boolean @default(true)
+  notifyVaccinationAlerts Boolean @default(true)
+  notifyChatMessages Boolean @default(true)
+  notifySystemUpdates Boolean @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  mother        Mother?
+  midwife       Midwife?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  sentMessages  ChatMessage[]  @relation("SentMessages")
+  receivedMessages ChatMessage[] @relation("ReceivedMessages")
+
+  @@map("users")
+}
+
+// Mother Table - Extended profile for mothers
+model Mother {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  dateOfBirth      DateTime?
+  bloodGroup       String?
+  emergencyContact String?
+  emergencyName    String?
+  medicalHistory   String?
+  allergies        String?
+  assignedMidwifeId String?
+  latitude         Decimal?  @db.Decimal(10, 7)
+  longitude        Decimal?  @db.Decimal(10, 7)
+  locationUpdatedAt DateTime?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedMidwife  Midwife?  @relation(fields: [assignedMidwifeId], references: [id])
+  pregnancies      Pregnancy[]
+  children         Child[]
+  visits           Visit[]
+  vaccinations     Vaccination[]
+  aiCareRecords    AICareRecord[]
+
+  @@map("mothers")
+}
+
+// Midwife Table - Extended profile for midwives
+model Midwife {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  licenseNumber   String?
+  specialization  String?
+  experience      Int?      // Years of experience
+  workArea        String?   // Geographic area
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedMothers Mother[]
+  visits          Visit[]
+
+  @@map("midwives")
+}
+
+// Pregnancy Table
+model Pregnancy {
+  id                   String    @id @default(cuid())
+  motherId             String
+  expectedDeliveryDate DateTime?
+  lastMenstrualPeriod  DateTime?
+  currentWeek          Int?
+  status               String    @default("ACTIVE") // ACTIVE, DELIVERED, TERMINATED
+  medicalNotes         String?
+  highRisk             Boolean   @default(false)
+  highRiskReasons      String?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  mother               Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("pregnancies")
+}
+
+// Child Table
+model Child {
+  id            String    @id @default(cuid())
+  motherId      String
+  name          String
+  gender        Gender
+  birthDate     DateTime
+  birthWeight   Decimal?  @db.Decimal(5, 2) // in kg
+  birthHeight   Decimal?  @db.Decimal(5, 2) // in cm
+  birthTime     String?
+  birthPlace    String?
+  healthNotes   String?
+  image         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  mother        Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  growthRecords GrowthRecord[]
+  vaccinations  Vaccination[]
+
+  @@map("children")
+}
+
+// Growth Record for Children
+model GrowthRecord {
+  id          String    @id @default(cuid())
+  childId     String
+  recordDate  DateTime  @default(now())
+  weight      Decimal?  @db.Decimal(5, 2) // in kg
+  height      Decimal?  @db.Decimal(5, 2) // in cm
+  headCircumference Decimal? @db.Decimal(5, 2) // in cm
+  bmi         Decimal?  @db.Decimal(5, 2)
+  notes       String?
+
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("growth_records")
+}
+
+// Visit Table
+model Visit {
+  id          String      @id @default(cuid())
+  motherId    String
+  midwifeId   String
+  visitType   VisitType
+  visitDate   DateTime
+  notes       String?
+  status      VisitStatus @default(SCHEDULED)
+  bloodPressure String?
+  weight      Decimal?    @db.Decimal(5, 2)
+  temperature Decimal?    @db.Decimal(4, 1)
+  fetalHeartRate Int?
+  symptoms    String?
+  recommendations String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  mother      Mother      @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  midwife     Midwife     @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+
+  @@map("visits")
+}
+
+// Vaccination Table
+model Vaccination {
+  id               String            @id @default(cuid())
+  motherId         String?
+  childId          String?
+  vaccineName      String
+  scheduledDate    DateTime
+  administeredDate DateTime?
+  status           VaccinationStatus @default(PENDING)
+  batchNumber      String?
+  administeredBy   String?
+  notes            String?
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // Relations
+  mother           Mother?           @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  child            Child?            @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("vaccinations")
+}
+
+// AI Assisted Care Records
+model AICareRecord {
+  id                  String    @id @default(cuid())
+  motherId            String
+  pregnancyWeek       Int?
+  careType            String    // FOOD, EXERCISE, FIRSTAID
+  query               String?
+  suggestions         String    @db.Text
+  generatedAt         DateTime  @default(now())
+
+  // Relations
+  mother              Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("ai_care_records")
+}
+
+// Notification Table
+model Notification {
+  id          String             @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  type        String             // VISIT_REMINDER, VACCINATION_REMINDER, SYSTEM, CHAT
+  status      NotificationStatus @default(UNREAD)
+  link        String?
+  createdAt   DateTime           @default(now())
+
+  // Relations
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Chat Messages
+model ChatMessage {
+  id          String    @id @default(cuid())
+  senderId    String
+  receiverId  String
+  message     String    @db.Text
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+// Audit Log Table
+model AuditLog {
+  id          String    @id @default(cuid())
+  userId      String
+  action      String
+  entity      String
+  entityId    String?
+  details     String?
+  ipAddress   String?
+  timestamp   DateTime  @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
