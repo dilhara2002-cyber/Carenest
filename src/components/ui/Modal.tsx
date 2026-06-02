@@ -21,14 +21,15 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4">
-        {/* Backdrop */}
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-          onClick={onClose}
-        />
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/40 -z-10"
+        onClick={onClose}
+      />
+      
+      {/* Modal Container */}
+      <div className="flex min-h-full items-center justify-center w-full">
         {/* Modal */}
         <div className={cn(
           'relative bg-white rounded-lg shadow-xl w-full',

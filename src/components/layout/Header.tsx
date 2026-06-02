@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Search, Calendar, MessageSquare, Syringe, Info, AlertTriangle, Check, ChevronRight } from 'lucide-react';
+import { Bell, Search, Calendar, MessageSquare, Syringe, Info, AlertTriangle, Check, ChevronRight, X } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
+import { Modal } from '@/components/ui';
 
 interface Notification {
   id: string;
@@ -17,12 +18,29 @@ interface Notification {
   createdAt: string;
 }
 
+interface MotherProfile {
+  id: string;
+  mohRegistrationNumber: string | null;
+  nicNumber: string | null;
+  dateOfBirth: string | null;
+  bloodGroup: string | null;
+  user: {
+    name: string;
+    email: string;
+    phone: string | null;
+    address: string | null;
+  };
+}
+
 export function Header() {
   const { data: session } = useSession();
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [motherProfile, setMotherProfile] = useState<MotherProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
@@ -47,6 +65,35 @@ export function Header() {
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
     }
+  };
+
+  const fetchMotherProfile = async () => {
+    if (!session?.user?.motherId) return;
+    
+    setProfileLoading(true);
+    try {
+      const res = await fetch(`/api/mothers/${session.user.motherId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMotherProfile(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch mother profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleProfileClick = () => {
+    setIsProfileOpen(true);
+    if (!motherProfile) {
+      fetchMotherProfile();
+    }
+  };
+
+  const handleEditProfile = () => {
+    setIsProfileOpen(false);
+    router.push('/settings');
   };
 
   useEffect(() => {
@@ -213,8 +260,8 @@ export function Header() {
             )}
           </div>
 
-          {/* User info */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* User info - Clickable profile */}
+          <div onClick={handleProfileClick} className="hidden md:flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer rounded-lg p-2 -mr-2">
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{session?.user?.name}</p>
               <p className="text-xs text-gray-500">{session?.user?.role}</p>
@@ -227,6 +274,114 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Profile Modal */}
+      <Modal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} size="lg">
+        {profileLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600"></div>
+          </div>
+        ) : motherProfile ? (
+          <div className="space-y-6">
+            {/* Avatar and Name Header */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center border-2 border-teal-300">
+                <span className="text-teal-700 font-bold text-3xl">
+                  {motherProfile.user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900">{motherProfile.user.name}</h2>
+                <p className="text-sm text-gray-600 mt-1">MOTHER</p>
+              </div>
+            </div>
+
+            {/* MOH Registration Number - Prominent Badge */}
+            {motherProfile.mohRegistrationNumber && (
+              <div className="bg-teal-50 border-2 border-teal-200 p-4 rounded-lg text-center">
+                <p className="text-xs font-semibold text-teal-700 uppercase tracking-widest mb-2">MOH Registration Number</p>
+                <p className="text-2xl font-bold text-teal-900">{motherProfile.mohRegistrationNumber}</p>
+                <p className="text-xs text-teal-600 mt-2">H 502 Registry Serial</p>
+              </div>
+            )}
+
+            {/* Profile Details - 2 Column Grid */}
+            <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              {/* Email */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Email</p>
+                <p className="text-sm text-gray-900 font-medium">{motherProfile.user.email}</p>
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Phone Number</p>
+                <p className="text-sm text-gray-900 font-medium">{motherProfile.user.phone || '-'}</p>
+              </div>
+
+              {/* Date of Birth */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Date of Birth</p>
+                <p className="text-sm text-gray-900 font-medium">
+                  {motherProfile.dateOfBirth 
+                    ? new Date(motherProfile.dateOfBirth).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })
+                    : '-'}
+                </p>
+              </div>
+
+              {/* Blood Group */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Blood Group</p>
+                {motherProfile.bloodGroup ? (
+                  <span className="inline-block bg-red-50 text-red-800 text-sm font-bold px-3 py-1 rounded-md border border-red-200">
+                    {motherProfile.bloodGroup}
+                  </span>
+                ) : (
+                  <p className="text-sm text-gray-900 font-medium">-</p>
+                )}
+              </div>
+
+              {/* Address - Full Width */}
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Address</p>
+                <p className="text-sm text-gray-900 font-medium">{motherProfile.user.address || '-'}</p>
+              </div>
+
+              {/* NIC Number - If Available */}
+              {motherProfile.nicNumber && (
+                <div className="col-span-2">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">NIC Number</p>
+                  <p className="text-sm text-gray-900 font-medium">{motherProfile.nicNumber}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 border-t pt-4">
+              <button
+                onClick={() => setIsProfileOpen(false)}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleEditProfile}
+                className="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+              >
+                Edit Profile
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="py-12 text-center">
+            <p className="text-gray-600">Failed to load profile</p>
+          </div>
+        )}
+      </Modal>
     </header>
   );
 }
