@@ -157,6 +157,7 @@ export async function POST(req: NextRequest) {
       emergencyName,
       medicalHistory,
       allergies,
+      mohRegistrationNumber,
       assignedMidwifeId,
     } = body;
 
@@ -209,6 +210,7 @@ export async function POST(req: NextRequest) {
         emergencyName,
         medicalHistory,
         allergies,
+        mohRegistrationNumber,
         assignedMidwifeId: normalizedAssignedMidwifeId,
       },
       include: {

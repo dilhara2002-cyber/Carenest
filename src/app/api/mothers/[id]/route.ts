@@ -102,6 +102,7 @@ export async function PATCH(
       emergencyName,
       medicalHistory,
       allergies,
+      mohRegistrationNumber,
       assignedMidwifeId,
       isActive,
     } = body;
@@ -168,6 +169,7 @@ export async function PATCH(
         ...(emergencyName !== undefined && { emergencyName }),
         ...(medicalHistory !== undefined && { medicalHistory }),
         ...(allergies !== undefined && { allergies }),
+        ...(mohRegistrationNumber !== undefined && { mohRegistrationNumber }),
         ...(assignedMidwifeId !== undefined && { assignedMidwifeId: assignedMidwifeId || null }),
       },
       include: {

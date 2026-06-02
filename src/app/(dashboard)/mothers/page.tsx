@@ -14,6 +14,7 @@ interface Mother {
   emergencyName: string | null;
   medicalHistory: string | null;
   allergies: string | null;
+  mohRegistrationNumber: string | null;
   assignedMidwifeId: string | null;
   latitude?: number | string | null;
   longitude?: number | string | null;
@@ -79,6 +80,7 @@ export default function MothersPage() {
     emergencyName: '',
     medicalHistory: '',
     allergies: '',
+    mohRegistrationNumber: '',
     assignedMidwifeId: '',
   });
 
@@ -180,6 +182,7 @@ export default function MothersPage() {
           emergencyName: formData.emergencyName || null,
           medicalHistory: formData.medicalHistory || null,
           allergies: formData.allergies || null,
+          mohRegistrationNumber: formData.mohRegistrationNumber || null,
         }),
       });
 
@@ -349,6 +352,7 @@ export default function MothersPage() {
       emergencyName: mother.emergencyName || '',
       medicalHistory: mother.medicalHistory || '',
       allergies: mother.allergies || '',
+      mohRegistrationNumber: mother.mohRegistrationNumber || '',
       assignedMidwifeId: mother.assignedMidwifeId || '',
     });
     setShowEditModal(true);
@@ -715,6 +719,12 @@ export default function MothersPage() {
             onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
             placeholder="Known allergies..."
           />
+          <Input
+            label="MOH Registration Number"
+            value={formData.mohRegistrationNumber}
+            onChange={(e) => setFormData({ ...formData, mohRegistrationNumber: e.target.value })}
+            placeholder="e.g., 2026/MAH/102"
+          />
           <div className="flex justify-end gap-3 mt-6">
             <Button type="button" variant="outline" onClick={() => setShowModal(false)}>
               Cancel
@@ -793,6 +803,12 @@ export default function MothersPage() {
             onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
             placeholder="Known allergies..."
           />
+          <Input
+            label="MOH Registration Number"
+            value={formData.mohRegistrationNumber}
+            onChange={(e) => setFormData({ ...formData, mohRegistrationNumber: e.target.value })}
+            placeholder="e.g., 2026/MAH/102"
+          />
           <div className="flex justify-end gap-3 mt-6">
             <Button type="button" variant="outline" onClick={() => setShowEditModal(false)}>
               Cancel
@@ -857,6 +873,15 @@ export default function MothersPage() {
       <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title="Mother Details" size="lg">
         {selectedMother && (
           <div className="space-y-6">
+            {/* Header Section with MOH Registration Number */}
+            {selectedMother.mohRegistrationNumber && (
+              <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-200 p-4 rounded-lg">
+                <p className="text-sm text-teal-600 font-semibold">MOH Registration Number</p>
+                <p className="text-xl font-bold text-teal-900">{selectedMother.mohRegistrationNumber}</p>
+                <p className="text-xs text-teal-700 mt-1">H 502 Registry Serial Number</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Personal Information</h3>
