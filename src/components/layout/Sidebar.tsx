@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   { label: 'Visits', href: '/visits', icon: Calendar, roles: ['MIDWIFE', 'ADMIN'] },
   { label: 'My Vaccinations', href: '/vaccinations', icon: Syringe, roles: ['MOTHER'] },
   { label: 'Vaccinations', href: '/vaccinations', icon: Syringe, roles: ['MIDWIFE', 'ADMIN'] },
+  { label: 'My Reports', href: '/my-reports', icon: FileText, roles: ['MOTHER'] },
   { label: 'AI Care', href: '/ai-care', icon: Brain, roles: ['MOTHER'] },
   { label: 'Chat', href: '/chat', icon: MessageSquare, roles: ['MOTHER', 'MIDWIFE'] },
   { label: 'Notifications', href: '/notifications', icon: Bell, roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },

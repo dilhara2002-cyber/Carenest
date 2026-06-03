@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Textarea, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
-import { Users, Plus, Search, Eye, Edit, UserCheck, Trash2, ToggleLeft, ToggleRight, Heart } from 'lucide-react';
+import { Users, Plus, Search, Eye, Edit, UserCheck, Trash2, ToggleLeft, ToggleRight, Heart, Upload } from 'lucide-react';
 import { formatDate, bloodGroups, getPregnancyProgress } from '@/lib/utils';
 
 interface Mother {
@@ -52,6 +53,7 @@ function toNullableNumber(value: number | string | null | undefined): number | n
 
 export default function MothersPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [mothers, setMothers] = useState<Mother[]>([]);
   const [midwives, setMidwives] = useState<Midwife[]>([]);
   const [loading, setLoading] = useState(true);
@@ -509,10 +511,19 @@ export default function MothersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Mothers Management</h1>
           <p className="text-gray-500">Manage registered mothers and their records</p>
         </div>
-        <Button onClick={() => setShowModal(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Register Mother
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => router.push('/documents/upload')}
+            variant="outline"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Document Upload
+          </Button>
+          <Button onClick={() => setShowModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Register Mother
+          </Button>
+        </div>
       </div>
 
       {/* Search & Filters */}

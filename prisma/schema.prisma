@@ -105,6 +105,7 @@ model Mother {
   visits                Visit[]
   vaccinations          Vaccination[]
   aiCareRecords         AICareRecord[]
+  documents             Document[]
 
   @@map("mothers")
 }
@@ -307,4 +308,33 @@ model AuditLog {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("audit_logs")
+}
+
+// Document Type - Admin-defined document categories
+model DocumentType {
+  id        String     @id @default(cuid())
+  name      String     @unique // e.g., "H15 Card", "Blood Report", "Anomaly Scan"
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  documents Document[]
+
+  @@map("document_types")
+}
+
+// Document - Health documents stored in Supabase
+model Document {
+  id             String       @id @default(cuid())
+  fileUrl        String       // Secure link to the Supabase storage bucket
+  fileName       String       // Original uploaded file name
+  documentTypeId String
+  motherId       String
+  uploadedAt     DateTime     @default(now())
+
+  // Relations
+  documentType   DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
+  mother         Mother       @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
 }

@@ -147,3 +147,63 @@ export interface AICareResponse {
   firstAidInfo: string[];
   disclaimer: string;
 }
+
+// ============================================================
+// DOCUMENT MANAGEMENT TYPES
+// ============================================================
+
+export interface DocumentType {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: {
+    documents: number;
+  };
+}
+
+export interface Document {
+  id: string;
+  fileUrl: string;
+  fileName: string;
+  documentTypeId: string;
+  motherId: string;
+  uploadedAt: Date;
+  documentType: DocumentType;
+  mother?: MotherWithRelations;
+}
+
+export interface BulkUploadRequest {
+  documentTypeId: string;
+  files: File[];
+}
+
+export interface BulkUploadFailure {
+  fileName: string;
+  error: string;
+}
+
+export interface BulkUploadResult {
+  successCount: number;
+  failureCount: number;
+  failures: BulkUploadFailure[];
+  hasFailures: boolean;
+  message?: string;
+  errorReport?: string;
+}
+
+export interface DocumentUploadResponse extends ApiResponse<Document> {
+  message?: string;
+}
+
+export interface DocumentListResponse extends ApiResponse<Document[]> {
+  data: Document[];
+}
+
+export interface DocumentTypeResponse extends ApiResponse<DocumentType> {
+  data: DocumentType;
+}
+
+export interface DocumentTypeListResponse extends ApiResponse<DocumentType[]> {
+  data: DocumentType[];
+}

@@ -1,13 +1,87 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Select } from '@/components/ui';
-import { FileText, Download, Calendar, Users, Syringe, BarChart3 } from 'lucide-react';
+import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle } from 'lucide-react';
 
 export default function ReportsPage() {
+  const { data: session } = useSession();
   const [reportType, setReportType] = useState('mothers');
   const [dateRange, setDateRange] = useState('month');
   const [loading, setLoading] = useState(false);
+  const [documentTypes, setDocumentTypes] = useState<any[]>([]);
+  const [newDocTypeName, setNewDocTypeName] = useState('');
+  const [docTypeLoading, setDocTypeLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+
+  // Fetch document types
+  useEffect(() => {
+    if (session?.user?.role === 'ADMIN') {
+      fetchDocumentTypes();
+    }
+  }, [session]);
+
+  const fetchDocumentTypes = async () => {
+    try {
+      const res = await fetch('/api/documents/types');
+      if (res.ok) {
+        const data = await res.json();
+        setDocumentTypes(data.data || []);
+      }
+    } catch (err) {
+      setError('Failed to load document types');
+    }
+  };
+
+  const handleCreateDocumentType = async () => {
+    if (!newDocTypeName.trim()) {
+      setError('Document type name is required');
+      return;
+    }
+
+    setDocTypeLoading(true);
+    setError('');
+    
+    try {
+      const res = await fetch('/api/documents/types', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newDocTypeName.trim() })
+      });
+
+      if (res.ok || res.status === 201) {
+        setNewDocTypeName('');
+        await fetchDocumentTypes();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to create document type');
+      }
+    } catch (err) {
+      setError('Error creating document type');
+    } finally {
+      setDocTypeLoading(false);
+    }
+  };
+
+  const handleDeleteDocumentType = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this document type?')) return;
+
+    try {
+      const res = await fetch(`/api/documents/types?id=${id}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        await fetchDocumentTypes();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to delete document type');
+      }
+    } catch (err) {
+      setError('Error deleting document type');
+    }
+  };
 
   const reportTypes = [
     { value: 'mothers', label: 'Mothers Report', icon: Users },
@@ -30,6 +104,81 @@ export default function ReportsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
         <p className="text-gray-500">Generate and download system reports</p>
       </div>
+
+      {/* Document Type Management - ADMIN Only */}
+      {session?.user?.role === 'ADMIN' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Document Type Management</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded p-3 flex gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+            
+            {/* Create New Document Type */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-900">
+                Add New Document Type
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newDocTypeName}
+                  onChange={(e) => setNewDocTypeName(e.target.value)}
+                  placeholder="e.g., H15 Card, Blood Report, Anomaly Scan"
+                  onKeyPress={(e) => e.key === 'Enter' && handleCreateDocumentType()}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+                <Button
+                  onClick={handleCreateDocumentType}
+                  isLoading={docTypeLoading}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Type
+                </Button>
+              </div>
+            </div>
+
+            {/* Document Types List */}
+            {documentTypes.length > 0 && (
+              <div className="space-y-2 pt-4 border-t">
+                <label className="block text-sm font-medium text-gray-900">
+                  Existing Document Types
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {documentTypes.map((docType: any) => (
+                    <div
+                      key={docType.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{docType.name}</p>
+                        {docType._count?.documents > 0 && (
+                          <p className="text-xs text-gray-500">
+                            {docType._count.documents} document(s)
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteDocumentType(docType.id)}
+                        disabled={docType._count?.documents > 0}
+                        className="p-2 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={docType._count?.documents > 0 ? 'Cannot delete - has documents' : 'Delete type'}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Report Configuration */}
