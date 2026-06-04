@@ -96,7 +96,7 @@ export async function PATCH(
     } = body;
 
     // Update in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Update user fields
       const userUpdate: any = {};
       if (name !== undefined) userUpdate.name = name;
