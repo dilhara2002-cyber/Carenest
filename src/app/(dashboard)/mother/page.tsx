@@ -50,17 +50,19 @@ export default function MotherDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {session?.user?.name}! 👋
-        </h1>
-        <p className="opacity-90">
-          {pregnancy?.progress
-            ? `You're in week ${pregnancy.progress.weeks} (${pregnancy.progress.trimesterLabel}) of your pregnancy.`
-            : pregnancy
-            ? `You're in week ${pregnancy.currentWeek || '?'} of your pregnancy.`
-            : 'Track your maternal health journey with CareNest.'}
-        </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, {session?.user?.name}! 👋
+          </h1>
+          <p className="opacity-90">
+            {pregnancy?.progress
+              ? `You're in week ${pregnancy.progress.weeks} (${pregnancy.progress.trimesterLabel}) of your pregnancy.`
+              : pregnancy
+              ? `You're in week ${pregnancy.currentWeek || '?'} of your pregnancy.`
+              : 'Track your maternal health journey with CareNest.'}
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
