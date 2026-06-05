@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui
 import { Heart, Calendar, Syringe, Bell, Baby, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import ChildGrowthWidget from '@/components/ChildGrowthWidget';
 
 interface DashboardData {
   activePregnancy: any;
@@ -93,6 +94,9 @@ export default function MotherDashboard() {
           color="orange"
         />
       </div>
+
+      {/* Child Growth Tracker */}
+      <ChildGrowthWidget />
 
       {/* Pregnancy Progress */}
       {pregnancy && (

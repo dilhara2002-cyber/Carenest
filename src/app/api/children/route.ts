@@ -45,8 +45,7 @@ export async function GET(req: NextRequest) {
           },
         },
         growthRecords: {
-          orderBy: { recordDate: 'desc' },
-          take: 5,
+          orderBy: { recordDate: 'asc' },
         },
         vaccinations: {
           orderBy: { scheduledDate: 'asc' },
