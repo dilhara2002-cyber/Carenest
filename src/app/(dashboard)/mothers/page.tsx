@@ -335,6 +335,7 @@ export default function MothersPage() {
       emergencyName: '',
       medicalHistory: '',
       allergies: '',
+      mohRegistrationNumber: '',
       assignedMidwifeId: '',
     });
   };

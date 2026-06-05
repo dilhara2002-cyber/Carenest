@@ -24,7 +24,6 @@ export default function MyReportsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Only mothers can access this page
   useEffect(() => {
@@ -60,38 +59,9 @@ export default function MyReportsPage() {
     }
   };
 
-  const handleDelete = async (documentId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
-
-    try {
-      setDeletingId(documentId);
-      const res = await fetch(
-        `/api/documents/${session?.user?.motherId}?documentId=${documentId}`,
-        { method: 'DELETE' }
-      );
-
-      if (res.ok) {
-        setDocuments(prev => prev.filter(doc => doc.id !== documentId));
-      } else {
-        setError('Failed to delete document');
-      }
-    } catch (err) {
-      setError('Error deleting document');
-      console.error(err);
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const handleDownload = (fileUrl: string, fileName: string) => {
-    // In a real scenario with Supabase, this would stream the file
-    // For now, it's a placeholder that could open the PDF
-    const link = document.createElement('a');
-    link.href = fileUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = (fileUrl: string) => {
+    // Open the PDF stream endpoint in a new tab natively
+    window.open(fileUrl, '_blank');
   };
 
   const formatDate = (dateString: string) => {
@@ -190,18 +160,11 @@ export default function MyReportsPage() {
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleDownload(doc.fileUrl, doc.fileName)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg text-sm font-medium text-teal-700 hover:bg-teal-100 transition-colors"
+                    onClick={() => handleDownload(doc.fileUrl)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg text-sm font-medium text-teal-700 hover:bg-teal-100 transition-colors"
                   >
                     <Download className="h-4 w-4" />
-                    Download
-                  </button>
-                  <button
-                    onClick={() => handleDelete(doc.id)}
-                    disabled={deletingId === doc.id}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  >
-                    <Trash2 className="h-4 w-4" />
+                    Download / View PDF
                   </button>
                 </div>
               </div>
