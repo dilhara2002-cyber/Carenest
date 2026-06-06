@@ -147,7 +147,7 @@ export function LocationPickerMap({ latitude, longitude, onPick }: LocationPicke
 
         mapRef.current = map;
 
-        mapClickListenerRef.current = map.addListener('click', (event) => {
+        mapClickListenerRef.current = map.addListener('click', (event: any) => {
           if (!event.latLng) return;
 
           setMarkerPosition(maps, event.latLng);
