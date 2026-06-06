@@ -106,7 +106,7 @@ export default function ReportsPage() {
 
     try {
       // Build request query string parameters dynamically
-      let url = `/api/reports?type=${reportType}&range=${dateRange}`;
+      let url = `/api/${reportType}?range=${dateRange}`;
       if (dateRange === 'custom') {
         url += `&startDate=${startDate}&endDate=${endDate}`;
       }
@@ -280,8 +280,8 @@ export default function ReportsPage() {
                     key={report.value}
                     onClick={() => setReportType(report.value)}
                     className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${reportType === report.value
-                        ? 'border-teal-500 bg-teal-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-teal-500 bg-teal-50'
+                      : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <Icon className={`h-8 w-8 mb-2 ${reportType === report.value ? 'text-teal-600' : 'text-gray-400'
