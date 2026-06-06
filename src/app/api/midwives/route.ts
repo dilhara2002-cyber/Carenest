@@ -60,9 +60,17 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
+    const highRiskCases = await prisma.pregnancy.count({
+      where: {
+        status: 'ACTIVE',
+        highRisk: true,
+      },
+    });
+
     return NextResponse.json({
       data: midwives,
       total: midwives.length,
+      highRiskCases,
     });
   } catch (error) {
     console.error('Get midwives error:', error);
