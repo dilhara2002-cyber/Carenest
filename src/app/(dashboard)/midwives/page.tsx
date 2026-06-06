@@ -38,6 +38,7 @@ import {
   Users,
   CheckCircle,
   XCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -116,6 +117,7 @@ export default function MidwivesPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [midwives, setMidwives] = useState<Midwife[]>([]);
+  const [highRiskCount, setHighRiskCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -167,6 +169,7 @@ export default function MidwivesPage() {
       const res = await fetch(`/api/midwives?${params.toString()}`);
       const data = await res.json();
       setMidwives(data.data || []);
+      setHighRiskCount(data.highRiskCases || 0);
     } catch (error) {
       console.error('Failed to fetch midwives:', error);
     } finally {
@@ -393,7 +396,7 @@ export default function MidwivesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 p-6">
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -427,6 +430,20 @@ export default function MidwivesPage() {
             </div>
           </CardContent>
         </Card>
+        <Card className="bg-red-50/50 border-red-100">
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="text-sm font-semibold text-red-800">High-Risk Cases</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-3xl font-extrabold text-red-800">{highRiskCount}</span>
+                <span className="text-xs text-gray-500 font-medium">Requiring attention</span>
+              </div>
+            </div>
+            <div className="p-3 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="flex items-center gap-4 p-6">
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -447,12 +464,14 @@ export default function MidwivesPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md 
+            text-black placeholder:text-gray-500 bg-white
+             focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
             </div>
             <Select
               value={statusFilter}
