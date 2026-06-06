@@ -384,7 +384,7 @@ export default function MidwivesPage() {
           <p className="text-gray-500">Register and manage midwives in the system</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchMidwives}>
+          <Button variant="outline" className="font-semibold" onClick={fetchMidwives}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
@@ -462,8 +462,14 @@ export default function MidwivesPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
             type="text"
             placeholder="Search by name or email..."
             value={searchTerm}
