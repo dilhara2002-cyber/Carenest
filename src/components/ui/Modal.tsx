@@ -21,20 +21,17 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/40 -z-10"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/40" />
       
       {/* Modal Container */}
       <div className="flex min-h-full items-center justify-center w-full">
         {/* Modal */}
-        <div className={cn(
-          'relative bg-white rounded-lg shadow-xl w-full',
-          sizes[size]
-        )}>
+        <div
+          className={cn('relative bg-white rounded-lg shadow-xl w-full', sizes[size])}
+          onClick={(event) => event.stopPropagation()}
+        >
           {title && (
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">{title}</h3>

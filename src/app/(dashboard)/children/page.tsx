@@ -301,6 +301,13 @@ export default function ChildrenPage() {
     }
   };
 
+  const calculateBMI = (weight: number | null | undefined, height: number | null | undefined) => {
+    if (!weight || !height) return null;
+    const heightMeters = height / 100;
+    if (heightMeters <= 0) return null;
+    return (weight / (heightMeters * heightMeters)).toFixed(1);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -313,17 +320,17 @@ export default function ChildrenPage() {
   const femaleChildren = children.filter((c) => c.gender === 'FEMALE');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-gray-900 antialiased">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Children Management</h1>
-          <p className="text-gray-500">
+          <p className="text-gray-700">
             {isMother ? 'Track your children\'s health and growth' : 'Register and manage children records'}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchChildren}>
+          <Button variant="outline" className="font-semibold" onClick={fetchChildren}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
@@ -345,7 +352,7 @@ export default function ChildrenPage() {
                 <Baby className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Children</p>
+                <p className="text-sm text-gray-700">Total Children</p>
                 <p className="text-2xl font-bold">{children.length}</p>
               </div>
             </CardContent>
@@ -356,7 +363,7 @@ export default function ChildrenPage() {
                 <Baby className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Boys</p>
+                <p className="text-sm text-gray-700">Boys</p>
                 <p className="text-2xl font-bold">{maleChildren.length}</p>
               </div>
             </CardContent>
@@ -367,7 +374,7 @@ export default function ChildrenPage() {
                 <Baby className="h-6 w-6 text-pink-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Girls</p>
+                <p className="text-sm text-gray-700">Girls</p>
                 <p className="text-2xl font-bold">{femaleChildren.length}</p>
               </div>
             </CardContent>
@@ -382,13 +389,13 @@ export default function ChildrenPage() {
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search by child or mother name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
               </div>
@@ -429,7 +436,7 @@ export default function ChildrenPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">{child.name}</h3>
-                      <p className="text-sm text-gray-500">{getAge(child.birthDate)} old</p>
+                      <p className="text-sm text-gray-600">{getAge(child.birthDate)} old</p>
                     </div>
                   </div>
                   <Badge variant={child.gender === 'MALE' ? 'info' : 'warning'}>
@@ -450,14 +457,22 @@ export default function ChildrenPage() {
                 {/* Birth Details */}
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-500 flex items-center gap-1">
+                    <span className="text-gray-600 flex items-center gap-1">
                       <Calendar className="h-3 w-3" /> Birth Date
                     </span>
                     <span className="font-medium">{formatDate(child.birthDate)}</span>
                   </div>
+                  {child.birthTime && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 flex items-center gap-1">
+                        <Clock className="h-3 w-3" /> Birth Time
+                      </span>
+                      <span className="font-medium">{child.birthTime}</span>
+                    </div>
+                  )}
                   {child.birthWeight && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 flex items-center gap-1">
+                      <span className="text-gray-600 flex items-center gap-1">
                         <Scale className="h-3 w-3" /> Birth Weight
                       </span>
                       <span className="font-medium">{child.birthWeight} kg</span>
@@ -465,7 +480,7 @@ export default function ChildrenPage() {
                   )}
                   {child.birthHeight && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 flex items-center gap-1">
+                      <span className="text-gray-600 flex items-center gap-1">
                         <Ruler className="h-3 w-3" /> Birth Height
                       </span>
                       <span className="font-medium">{child.birthHeight} cm</span>
@@ -473,7 +488,7 @@ export default function ChildrenPage() {
                   )}
                   {child.birthPlace && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 flex items-center gap-1">
+                      <span className="text-gray-600 flex items-center gap-1">
                         <MapPin className="h-3 w-3" /> Birth Place
                       </span>
                       <span className="font-medium">{child.birthPlace}</span>
@@ -485,7 +500,7 @@ export default function ChildrenPage() {
                 {child.growthRecords && child.growthRecords.length > 0 && (
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-sm font-medium text-gray-700 mb-2">Latest Growth Record</p>
-                    <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                       <div className="bg-gray-50 p-2 rounded">
                         <p className="text-xs text-gray-500">Weight</p>
                         <p className="font-semibold">{child.growthRecords[0].weight || '-'} kg</p>
@@ -497,6 +512,12 @@ export default function ChildrenPage() {
                       <div className="bg-gray-50 p-2 rounded">
                         <p className="text-xs text-gray-500">Head</p>
                         <p className="font-semibold">{child.growthRecords[0].headCircumference || '-'} cm</p>
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded">
+                        <p className="text-xs text-gray-500">BMI</p>
+                        <p className="font-semibold">
+                          {calculateBMI(child.growthRecords[0].weight, child.growthRecords[0].height) || '-'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -545,7 +566,7 @@ export default function ChildrenPage() {
           <CardContent className="py-16 text-center">
             <Baby className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No children registered</h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-gray-600 mb-4">
               {canManage ? 'Register a child to start tracking their health' : 'No children records available'}
             </p>
             {canManage && (
@@ -775,7 +796,7 @@ export default function ChildrenPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold">{selectedChild.name}</h3>
-                <p className="text-gray-500">
+                <p className="text-gray-600">
                   {selectedChild.gender === 'MALE' ? 'Boy' : 'Girl'} • {getAge(selectedChild.birthDate)} old
                 </p>
               </div>
@@ -793,7 +814,7 @@ export default function ChildrenPage() {
                   </div>
                   <div>
                     <p className="font-medium">{selectedChild.mother.user.name}</p>
-                    <p className="text-sm text-gray-500">{selectedChild.mother.user.email}</p>
+                    <p className="text-sm text-gray-600">{selectedChild.mother.user.email}</p>
                   </div>
                 </div>
               </div>
@@ -848,7 +869,7 @@ export default function ChildrenPage() {
             {selectedChild.growthRecords && selectedChild.growthRecords.length > 0 && (
               <div>
                 <h4 className="font-medium text-gray-700 mb-3">Latest Growth Record</h4>
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                   <div className="bg-green-50 p-3 rounded-lg">
                     <Scale className="h-5 w-5 mx-auto text-green-600 mb-1" />
                     <p className="text-xs text-gray-500">Weight</p>
@@ -864,6 +885,12 @@ export default function ChildrenPage() {
                     <p className="text-xs text-gray-500">Head</p>
                     <p className="font-semibold">
                       {selectedChild.growthRecords[0].headCircumference || '-'} cm
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500">BMI</p>
+                    <p className="font-semibold">
+                      {calculateBMI(selectedChild.growthRecords[0].weight, selectedChild.growthRecords[0].height) || '-'}
                     </p>
                   </div>
                 </div>
@@ -912,7 +939,7 @@ export default function ChildrenPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold">{editingChild.mother.user.name}</h3>
-                  <p className="text-sm text-gray-500">{editingChild.mother.user.email}</p>
+                  <p className="text-sm text-gray-600">{editingChild.mother.user.email}</p>
                 </div>
               </div>
             )}
