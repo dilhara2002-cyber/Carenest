@@ -229,13 +229,13 @@ export default function MyReportsPage() {
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
               <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
                 <Filter className="h-4 w-4 text-teal-600" />
-                <h2 className="font-semibold text-gray-900">Filter Setup</h2>
+                <h2 className="font-semibold text-gray-900">Document Download</h2>
               </div>
 
               {/* STAGE 1: CHOOSE DOCUMENT ARCHIVE ENTRY TYPE */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  1. Document Type <span className="text-rose-500">*</span>
+                  Document Type <span className="text-rose-500">*</span>
                 </label>
                 <select
                   className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-shadow"
@@ -253,7 +253,7 @@ export default function MyReportsPage() {
               {/* STAGE 2: DATE CHRONOLOGY HORIZON FIELD */}
               <div className="space-y-1.5">
                 <label className={`block text-xs font-semibold uppercase tracking-wider ${!selectedType ? 'text-gray-300' : 'text-gray-700'}`}>
-                  2. Configuration Range
+                  Date Range
                 </label>
                 <select
                   className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-shadow disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
