@@ -151,7 +151,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const careType = searchParams.get('careType');
 
-    const where: any = {};
+    const where: {
+      motherId?: string;
+      careType?: string;
+    } = {};
 
     if (session.user.motherId) {
       where.motherId = session.user.motherId;

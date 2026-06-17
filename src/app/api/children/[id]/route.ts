@@ -105,7 +105,16 @@ export async function PATCH(
     } = body;
 
     // Build update data
-    const updateData: any = {};
+    const updateData: {
+      name?: string;
+      gender?: string;
+      birthDate?: Date;
+      birthWeight?: number | null;
+      birthHeight?: number | null;
+      birthTime?: string | null;
+      birthPlace?: string | null;
+      healthNotes?: string | null;
+    } = {};
 
     if (name !== undefined) {
       updateData.name = name;
