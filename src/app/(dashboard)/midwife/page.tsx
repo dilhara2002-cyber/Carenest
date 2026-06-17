@@ -2,45 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
-import { Users, Heart, Calendar, Syringe, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { Users, Heart, Calendar, Syringe, AlertTriangle, CheckCircle, Clock, ArrowRight, Stethoscope, MessageSquare, Shield, Activity, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
-import { formatDate, formatDateTime } from '@/lib/utils';
+import { formatDate, formatDateTime, cn } from '@/lib/utils';
 
 interface DashboardData {
   assignedMothers: number;
   activePregnancies: number;
   todayVisits: number;
-  upcomingVisits: {
-    id: string;
-    visitDate: string;
-    visitType: string;
-    mother?: {
-      user?: {
-        name: string;
-      };
-    };
-  }[];
+  upcomingVisits: any[];
   pendingVaccinations: number;
   completedVisitsThisMonth: number;
   highRiskCases: number;
-  pregnancyOverview: {
-    id: string;
-    motherName: string;
-    highRisk: boolean;
-    currentWeek?: number;
-    progress?: {
-      weeks: number;
-      days: number;
-      month: number;
-      trimester: number;
-      trimesterLabel: string;
-      percentComplete: number;
-      daysRemaining: number;
-      isOverdue: boolean;
-      expectedDeliveryDate: string;
-    };
-  }[];
+  pregnancyOverview: any[];
 }
 
 export default function MidwifeDashboard() {
@@ -67,201 +42,347 @@ export default function MidwifeDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <div className="relative">
+          <div className="animate-spin rounded-full h-14 w-14 border-4 border-[#E5E7EB] border-t-[#2563EB]"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Stethoscope className="h-5 w-5 text-[#2563EB] animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
+  const currentHour = new Date().getHours();
+  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
+
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {session?.user?.name}! 👩‍⚕️
-        </h1>
-        <p className="opacity-90">
-          You have {dashboardData?.todayVisits || 0} visits scheduled for today.
-        </p>
+    <div className="space-y-6 bg-[#F9FAFB] min-h-screen">
+      
+      {/* ── Hero Banner ── */}
+      {/* Mirrors admin page CTA style: bg-[#111827] with blue + pink overlays */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#111827] p-8 text-white">
+        {/* Homepage-style gradient overlays */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#1E40AF]/25 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-r from-[#F472B6]/15 to-transparent pointer-events-none" />
+
+        {/* Shimmer sweep */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+        </div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div>
+            {/* Green "live" pill */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D1FAE5] mb-5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+              </span>
+              <span className="text-[#10B981] text-xs font-semibold tracking-widest uppercase">Midwife Portal</span>
+            </div>
+
+            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+              {greeting}, {session?.user?.name} 👩‍⚕️
+            </h1>
+            {/* Gradient subtext */}
+            <p className="text-[#6B7280] text-base max-w-lg leading-relaxed font-light">
+              You have{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#F472B6] font-semibold">
+                {dashboardData?.todayVisits || 0} visits
+              </span>{' '}
+              scheduled for today on the CareNest system.
+            </p>
+          </div>
+
+          {/* Right side info chips */}
+          <div className="hidden lg:flex flex-col items-end gap-3 font-sans shrink-0">
+            <div className="text-right">
+              <p className="text-xs text-[#6B7280] mb-0.5">Today</p>
+              <p className="text-base font-semibold text-white">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#D1FAE5]/10 border border-[#10B981]/20 rounded-full">
+                <Activity className="h-3.5 w-3.5 text-[#10B981] animate-pulse" />
+                <span className="text-xs text-[#10B981] font-medium">System Online</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#2563EB]/10 border border-[#2563EB]/20 rounded-full">
+                <Stethoscope className="h-3.5 w-3.5 text-[#2563EB]" />
+                <span className="text-xs text-[#3B82F6] font-medium">Midwife</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Assigned Mothers → blue */}
         <StatCard
           title="Assigned Mothers"
           value={dashboardData?.assignedMothers?.toString() || '0'}
-          icon={<Users className="h-6 w-6 text-blue-500" />}
-          href="/mothers"
-          color="blue"
+          icon={<Users className="h-5 w-5 text-[#2563EB]" />}
+          iconBg="bg-blue-50"
+          valueColor="text-[#2563EB]"
+          barColor="bg-[#2563EB]"
+          delay="stagger-1"
         />
+        {/* Active Pregnancies → pink */}
         <StatCard
           title="Active Pregnancies"
           value={dashboardData?.activePregnancies?.toString() || '0'}
-          icon={<Heart className="h-6 w-6 text-pink-500" />}
-          href="/pregnancies"
-          color="pink"
+          icon={<Heart className="h-5 w-5 text-[#F472B6]" />}
+          iconBg="bg-pink-50"
+          valueColor="text-[#F472B6]"
+          barColor="bg-[#F472B6]"
+          delay="stagger-2"
         />
+        {/* High Risk Cases → red */}
         <StatCard
           title="High Risk Cases"
           value={dashboardData?.highRiskCases?.toString() || '0'}
-          icon={<AlertTriangle className="h-6 w-6 text-red-500" />}
-          href="/mothers?filter=high-risk"
-          color="red"
+          icon={<AlertTriangle className="h-5 w-5 text-[#EF4444]" />}
+          iconBg="bg-red-50"
+          valueColor="text-[#EF4444]"
+          barColor="bg-[#EF4444]"
+          delay="stagger-3"
         />
+        {/* Completed This Month → green/emerald */}
         <StatCard
-          title="Completed This Month"
+          title="Completed (Month)"
           value={dashboardData?.completedVisitsThisMonth?.toString() || '0'}
-          icon={<CheckCircle className="h-6 w-6 text-green-500" />}
-          href="/visits?status=completed"
-          color="green"
+          icon={<CheckCircle className="h-5 w-5 text-[#10B981]" />}
+          iconBg="bg-emerald-50"
+          valueColor="text-[#10B981]"
+          barColor="bg-[#10B981]"
+          delay="stagger-4"
         />
       </div>
 
       {/* Today's Visits and Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
         {/* Upcoming Visits */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-teal-500" />
-                Upcoming Visits
-              </span>
-              <Link href="/visits" className="text-sm text-teal-600 hover:underline">
-                View All
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {dashboardData?.upcomingVisits && dashboardData.upcomingVisits.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.upcomingVisits.map((visit) => (
+        <div className="animate-fade-in-up bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+            <span className="flex items-center gap-2.5 text-[#111827] font-semibold text-sm">
+              <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50">
+                <Calendar className="h-4 w-4 text-[#2563EB]" />
+              </div>
+              Upcoming Visits
+            </span>
+            <Link
+              href="/visits"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] bg-blue-50 hover:bg-[#2563EB] hover:text-white px-3 py-1.5 rounded-full transition-all duration-300 group"
+            >
+              View All
+              <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          {/* Content */}
+          {dashboardData?.upcomingVisits && dashboardData.upcomingVisits.length > 0 ? (
+            <div className="divide-y divide-[#F9FAFB]">
+              {dashboardData.upcomingVisits.map((visit: any, idx: number) => {
+                // Cycle avatar styles like admin list
+                const avatarStyles = [
+                  { bg: 'bg-blue-50', text: 'text-[#2563EB]', border: 'border-blue-100' },
+                  { bg: 'bg-pink-50', text: 'text-[#F472B6]', border: 'border-pink-100' },
+                  { bg: 'bg-emerald-50', text: 'text-[#10B981]', border: 'border-emerald-100' },
+                  { bg: 'bg-amber-50', text: 'text-[#F59E0B]', border: 'border-amber-100' },
+                  { bg: 'bg-red-50', text: 'text-[#EF4444]', border: 'border-red-100' },
+                ];
+                const style = avatarStyles[idx % avatarStyles.length];
+                return (
                   <div
                     key={visit.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between px-6 py-3.5 hover:bg-[#F9FAFB] transition-colors"
                   >
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {visit.mother?.user?.name || 'Unknown'}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {formatDateTime(visit.visitDate)}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl border ${style.border} ${style.bg} flex items-center justify-center ${style.text} font-bold text-sm shrink-0`}>
+                        {visit.mother?.user?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#111827]">
+                          {visit.mother?.user?.name || 'Unknown'}
+                        </p>
+                        <p className="text-xs text-[#6B7280] flex items-center gap-1.5 mt-0.5">
+                          <Clock className="h-3 w-3 text-[#6B7280]" />
+                          {formatDateTime(visit.visitDate)}
+                        </p>
+                      </div>
                     </div>
-                    <Badge variant={visit.visitType === 'ANTENATAL' ? 'info' : 'success'}>
+                    <Badge variant={visit.visitType === 'ANTENATAL' ? 'info' : 'success'} className="font-semibold rounded-full px-2.5 py-0.5 text-[10px]">
                       {visit.visitType}
                     </Badge>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+
+          ) : (
+            <div className="py-14 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-3">
+                <Calendar className="h-6 w-6 text-[#2563EB]" />
               </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No upcoming visits</p>
-            )}
-          </CardContent>
-        </Card>
+              <p className="text-[#111827] text-sm font-semibold">No upcoming visits</p>
+              <p className="text-[#6B7280] text-xs mt-0.5 font-light">Visits will appear here</p>
+            </div>
+          )}
+        </div>
 
         {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <Link
-                href="/mothers"
-                className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <Users className="h-8 w-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-blue-900">View Mothers</span>
-              </Link>
-              <Link
-                href="/visits"
-                className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <Calendar className="h-8 w-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-green-900">Schedule Visit</span>
-              </Link>
-              <Link
-                href="/vaccinations"
-                className="flex flex-col items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
-              >
-                <Syringe className="h-8 w-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium text-orange-900">Vaccinations</span>
-              </Link>
-              <Link
-                href="/chat"
-                className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-              >
-                <svg className="h-8 w-8 text-purple-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span className="text-sm font-medium text-purple-900">Messages</span>
-              </Link>
+        <div className="animate-fade-in-up stagger-2 bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-[#E5E7EB]">
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-amber-50">
+              <BarChart3 className="h-4 w-4 text-[#F59E0B]" />
             </div>
-          </CardContent>
-        </Card>
+            <span className="text-[#111827] font-semibold text-sm">Quick Actions</span>
+          </div>
+
+          <div className="p-5 grid grid-cols-2 gap-3">
+            {/* View Mothers */}
+            <ActionCard
+              href="/mothers"
+              icon={<Users className="h-5 w-5 text-[#2563EB]" />}
+              iconBg="bg-blue-50"
+              hoverBorder="hover:border-[#2563EB]/30"
+              hoverShadow="hover:shadow-blue-100"
+              label="View Mothers"
+              sublabel={`${dashboardData?.assignedMothers || 0} assigned`}
+              sublabelColor="text-[#6B7280]"
+            />
+            {/* Schedule Visit */}
+            <ActionCard
+              href="/visits"
+              icon={<Calendar className="h-5 w-5 text-[#10B981]" />}
+              iconBg="bg-emerald-50"
+              hoverBorder="hover:border-[#10B981]/30"
+              hoverShadow="hover:shadow-emerald-100"
+              label="Schedule Visit"
+              sublabel={`${dashboardData?.todayVisits || 0} today`}
+              sublabelColor="text-[#6B7280]"
+            />
+            {/* Vaccinations */}
+            <ActionCard
+              href="/vaccinations"
+              icon={<Syringe className="h-5 w-5 text-[#F59E0B]" />}
+              iconBg="bg-amber-50"
+              hoverBorder="hover:border-[#F59E0B]/30"
+              hoverShadow="hover:shadow-amber-100"
+              label="Vaccinations"
+              sublabel={`${dashboardData?.pendingVaccinations || 0} pending`}
+              sublabelColor="text-[#6B7280]"
+            />
+            {/* Messages */}
+            <ActionCard
+              href="/chat"
+              icon={<MessageSquare className="h-5 w-5 text-[#3B82F6]" />}
+              iconBg="bg-blue-50"
+              hoverBorder="hover:border-[#3B82F6]/30"
+              hoverShadow="hover:shadow-blue-100"
+              label="Messages"
+              sublabel="Direct Chat"
+              sublabelColor="text-[#6B7280]"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Pending Vaccinations Alert */}
       {(dashboardData?.pendingVaccinations || 0) > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <Syringe className="h-6 w-6 text-orange-600" />
+        <div className="animate-fade-in-up relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50/80 via-orange-50/40 to-transparent border border-amber-200/60 p-5 shadow-sm">
+          {/* Subtle decoration pattern */}
+          <div className="absolute top-0 right-0 w-24 h-full bg-amber-100/20 blur-xl rounded-full translate-x-1/2 pointer-events-none" />
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-amber-50 text-[#F59E0B] rounded-xl shrink-0">
+                <Syringe className="h-6 w-6" />
+              </div>
               <div>
-                <p className="font-medium text-orange-900">
+                <p className="font-bold text-amber-900 text-lg">
                   {dashboardData?.pendingVaccinations} Pending Vaccinations
                 </p>
-                <p className="text-sm text-orange-700">
-                  Vaccinations due in the next 30 days
+                <p className="text-sm text-amber-700/90 font-light mt-0.5">
+                  Immunization schedules due in the next 30 days. Action required.
                 </p>
               </div>
             </div>
             <Link
               href="/vaccinations?status=pending"
-              className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-full font-semibold text-sm transition-all shadow-md shadow-amber-500/10 hover:shadow-lg hover:-translate-y-0.5"
             >
-              View All
+              View All Due
+              <ArrowRight className="h-4 w-4" />
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Pregnancy Progress Overview */}
       {dashboardData?.pregnancyOverview && dashboardData.pregnancyOverview.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-pink-500" />
-                Pregnancy Progress Overview
-              </span>
-              <Link href="/pregnancies" className="text-sm text-teal-600 hover:underline">
-                View All
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {dashboardData.pregnancyOverview.map((item) => (
+        <div className="animate-fade-in-up bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+            <span className="flex items-center gap-2.5 text-[#111827] font-semibold text-sm">
+              <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-pink-50">
+                <Heart className="h-4 w-4 text-[#F472B6]" />
+              </div>
+              Pregnancy Progress Overview
+            </span>
+            <Link
+              href="/pregnancies"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] bg-blue-50 hover:bg-[#2563EB] hover:text-white px-3 py-1.5 rounded-full transition-all duration-300 group"
+            >
+              View All
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {dashboardData.pregnancyOverview.map((item: any, idx: number) => {
+              // Cycle avatar styles
+              const avatarStyles = [
+                { bg: 'bg-blue-50', text: 'text-[#2563EB]', border: 'border-blue-100' },
+                { bg: 'bg-pink-50', text: 'text-[#F472B6]', border: 'border-pink-100' },
+                { bg: 'bg-emerald-50', text: 'text-[#10B981]', border: 'border-emerald-100' },
+                { bg: 'bg-amber-50', text: 'text-[#F59E0B]', border: 'border-amber-100' },
+                { bg: 'bg-red-50', text: 'text-[#EF4444]', border: 'border-red-100' },
+              ];
+              const style = avatarStyles[idx % avatarStyles.length];
+              return (
                 <div
                   key={item.id}
-                  className={`p-4 rounded-lg border ${item.highRisk ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+                  className={cn(
+                    "p-5 rounded-2xl border transition-all duration-300",
+                    item.highRisk 
+                      ? 'border-red-200 bg-red-50/10 shadow-sm relative border-l-4 border-l-red-500' 
+                      : 'border-[#E5E7EB] bg-white hover:shadow-sm'
+                  )}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">{item.motherName}</span>
-                      {item.highRisk && (
-                        <Badge variant="danger">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          High Risk
-                        </Badge>
-                      )}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl border ${style.border} ${style.bg} flex items-center justify-center ${style.text} font-bold text-sm shrink-0`}>
+                        {item.motherName?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-gray-900 text-sm">{item.motherName}</span>
+                        {item.highRisk && (
+                          <Badge variant="danger" className="font-bold uppercase text-[9px] px-2.5 py-0.5 rounded-full shadow-sm">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            High Risk
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     {item.progress && (
                       <Badge variant={
                         item.progress.isOverdue ? 'danger' :
                         item.progress.trimester === 3 ? 'warning' : 'info'
-                      }>
+                      } className="font-bold text-[10px] uppercase px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
                         {item.progress.trimesterLabel}
                       </Badge>
                     )}
@@ -269,29 +390,37 @@ export default function MidwifeDashboard() {
 
                   {item.progress ? (
                     <>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">
+                      <div className="flex justify-between text-xs mb-2">
+                        <span className="text-gray-500 font-semibold uppercase tracking-wider">
                           Week {item.progress.weeks}, Day {item.progress.days} · Month {item.progress.month}
                         </span>
-                        <span className="text-gray-500">{item.progress.percentComplete}%</span>
+                        <span className="text-gray-900 font-extrabold">{item.progress.percentComplete}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div className="w-full bg-gray-100 rounded-full h-2 mb-3 overflow-hidden shadow-inner">
                         <div
-                          className={`h-2 rounded-full transition-all ${
+                          className={cn(
+                            "h-full rounded-full transition-all duration-500 relative",
                             item.progress.isOverdue
-                              ? 'bg-gradient-to-r from-red-400 to-red-600'
-                              : 'bg-gradient-to-r from-pink-400 to-pink-600'
-                          }`}
+                              ? 'bg-gradient-to-r from-red-500 to-rose-600'
+                              : 'bg-gradient-to-r from-[#2563EB] to-[#F472B6]'
+                          )}
                           style={{ width: `${item.progress.percentComplete}%` }}
-                        />
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shimmer" />
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          EDD: {formatDate(item.progress.expectedDeliveryDate)}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                        <span className="flex items-center gap-1.5 bg-[#F9FAFB] border border-[#E5E7EB] px-2.5 py-1 rounded-xl">
+                          <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                          EDD: <strong className="text-gray-700 font-bold">{formatDate(item.progress.expectedDeliveryDate)}</strong>
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                        <span className={cn(
+                          "flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-semibold uppercase tracking-wider text-[10px]",
+                          item.progress.isOverdue 
+                            ? 'bg-red-50 text-red-700 border border-red-100' 
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        )}>
+                          <Clock className="h-3.5 w-3.5" />
                           {item.progress.isOverdue
                             ? 'Overdue'
                             : `${item.progress.daysRemaining} days remaining`}
@@ -299,46 +428,80 @@ export default function MidwifeDashboard() {
                       </div>
                     </>
                   ) : (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 font-light mt-1">
                       Week {item.currentWeek || '?'} · LMP not recorded
                     </p>
                   )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
+/* ── StatCard ── */
 function StatCard({
-  title,
-  value,
-  icon,
-  href,
-  color,
+  title, value, icon, iconBg, valueColor, barColor, delay,
 }: {
   title: string;
   value: string;
   icon: React.ReactNode;
-  href: string;
-  color: string;
+  iconBg: string;
+  valueColor: string;
+  barColor: string;
+  delay: string;
 }) {
   return (
-    <Link href={href}>
-      <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="flex items-center justify-between p-6">
-          <div>
-            <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-          </div>
-          <div className={`p-3 rounded-lg bg-gray-100`}>
+    <div
+      className={`card-lift animate-fade-in-up ${delay} bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm`}
+    >
+      {/* Thin top accent bar matching the icon colour */}
+      <div className={`h-1 w-full ${barColor} opacity-70`} />
+      <div className="p-4 pt-3.5">
+        <div className="flex items-center justify-between mb-3">
+          {/* Icon in homepage-style rounded-xl accent bg */}
+          <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${iconBg} group-hover:scale-110 transition-transform duration-300`}>
             {icon}
           </div>
-        </CardContent>
-      </Card>
+          {/* Minimal live dot */}
+          <div className="flex items-center gap-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${barColor} animate-pulse`} />
+            <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest">Live</span>
+          </div>
+        </div>
+        <p className="text-sm font-bold text-gray-700 mb-1">{title}</p>
+        <p className={`text-3xl font-extrabold ${valueColor} animate-count-up`}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── ActionCard ── */
+function ActionCard({
+  href, icon, iconBg, hoverBorder, hoverShadow, label, sublabel, sublabelColor,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  hoverBorder: string;
+  hoverShadow: string;
+  label: string;
+  sublabel: string;
+  sublabelColor: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`action-glow flex flex-col items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl ${hoverBorder} hover:bg-white hover:shadow-md ${hoverShadow} transition-all duration-300 group`}
+    >
+      <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${iconBg} mb-3 group-hover:scale-110 transition-transform duration-300`}>
+        {icon}
+      </div>
+      <span className="text-sm font-semibold text-[#111827]">{label}</span>
+      <span className={`text-xs ${sublabelColor} mt-0.5 font-light`}>{sublabel}</span>
     </Link>
   );
 }

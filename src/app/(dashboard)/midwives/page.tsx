@@ -25,13 +25,11 @@ import {
   UserPlus,
   Plus,
   Search,
-  Edit,
   Trash2,
   Eye,
   Mail,
   Phone,
   MapPin,
-  Award,
   Briefcase,
   Shield,
   RefreshCw,
@@ -40,7 +38,8 @@ import {
   XCircle,
   AlertTriangle,
 } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import Link from 'next/link';
+import { formatDate, cn } from '@/lib/utils';
 
 interface Midwife {
   id: string;
@@ -121,7 +120,6 @@ export default function MidwivesPage() {
   const [loading, setLoading] = useState(true);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedMidwife, setSelectedMidwife] = useState<Midwife | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,20 +130,17 @@ export default function MidwivesPage() {
 
   // Registration form data
   const [formData, setFormData] = useState({
-    // Personal Information (Step 1)
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     address: '',
     language: 'en',
-    // Professional Information (Step 2)
     licenseNumber: '',
     specialization: '',
     experience: '',
     workArea: '',
     qualifications: '',
-    // Account Settings (Step 3)
     password: '',
     confirmPassword: '',
     sendWelcomeEmail: true,
@@ -358,7 +353,7 @@ export default function MidwivesPage() {
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#2563EB]"></div>
       </div>
     );
   }
@@ -366,7 +361,7 @@ export default function MidwivesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#2563EB]"></div>
       </div>
     );
   }
@@ -376,19 +371,23 @@ export default function MidwivesPage() {
   const totalAssignedMothers = midwives.reduce((sum, m) => sum + m._count.assignedMothers, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative overflow-visible">
+      {/* Background decoration orbs matching Landing Page */}
+      <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[300px] rounded-full bg-[#FBCFE8]/25 blur-[100px] opacity-40 mix-blend-multiply pointer-events-none -z-10" />
+      <div className="absolute top-[35%] right-[-5%] w-[35%] h-[300px] rounded-full bg-[#E0E7FF]/40 blur-[100px] opacity-50 mix-blend-multiply pointer-events-none -z-10" />
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Midwife Management</h1>
-          <p className="text-gray-500">Register and manage midwives in the system</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">Midwife Management</h1>
+          <p className="text-gray-500 font-light mt-1">Register and manage midwives in the system</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="font-semibold" onClick={fetchMidwives}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" className="font-semibold rounded-xl border-gray-200 hover:bg-gray-50 transition-colors" onClick={fetchMidwives}>
+            <RefreshCw className="h-4 w-4 mr-2 text-gray-500" />
             Refresh
           </Button>
-          <Button onClick={() => setShowRegisterModal(true)}>
+          <Button className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-lg transition-all" onClick={() => setShowRegisterModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Register Midwife
           </Button>
@@ -397,158 +396,179 @@ export default function MidwivesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <UserPlus className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Midwives</p>
-              <p className="text-2xl font-bold">{midwives.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Active</p>
-              <p className="text-2xl font-bold">{activeMidwives.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="p-3 bg-red-100 rounded-lg">
-              <XCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Inactive</p>
-              <p className="text-2xl font-bold">{inactiveMidwives.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-red-50/50 border-red-100">
+        {/* Total Midwives */}
+        <Card className="relative card-lift cursor-pointer overflow-hidden border border-gray-100 hover:border-gray-250/85 transition-all duration-300 shadow-sm hover:shadow-md group">
+          <div className="h-1 w-full absolute top-0 left-0 bg-gradient-to-r from-purple-500 to-indigo-500" />
           <CardContent className="flex items-center justify-between p-6">
             <div>
-              <p className="text-sm font-semibold text-red-800">High-Risk Cases</p>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-extrabold text-red-800">{highRiskCount}</span>
-                <span className="text-xs text-gray-500 font-medium">Requiring attention</span>
-              </div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Midwives</p>
+              <p className="text-3xl font-extrabold text-gray-900 mt-1.5 animate-count-up">{midwives.length}</p>
             </div>
-            <div className="p-3 bg-red-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+            <div className="p-3.5 rounded-2xl bg-purple-50 text-purple-600 group-hover:scale-115 group-hover:rotate-3 transition-all duration-300">
+              <UserPlus className="h-6 w-6" />
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
-            </div>
+
+        {/* Active Midwives */}
+        <Card className="relative card-lift cursor-pointer overflow-hidden border border-gray-100 hover:border-gray-250/85 transition-all duration-300 shadow-sm hover:shadow-md group">
+          <div className="h-1 w-full absolute top-0 left-0 bg-gradient-to-r from-emerald-500 to-green-500" />
+          <CardContent className="flex items-center justify-between p-6">
             <div>
-              <p className="text-sm text-gray-500">Assigned Mothers</p>
-              <p className="text-2xl font-bold">{totalAssignedMothers}</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Active</p>
+              <p className="text-3xl font-extrabold text-gray-900 mt-1.5 animate-count-up">{activeMidwives.length}</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 group-hover:scale-115 group-hover:rotate-3 transition-all duration-300">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Inactive Midwives */}
+        <Card className="relative card-lift cursor-pointer overflow-hidden border border-gray-100 hover:border-gray-250/85 transition-all duration-300 shadow-sm hover:shadow-md group">
+          <div className="h-1 w-full absolute top-0 left-0 bg-gradient-to-r from-red-400 to-rose-500" />
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Inactive</p>
+              <p className="text-3xl font-extrabold text-gray-900 mt-1.5 animate-count-up">{inactiveMidwives.length}</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-red-50 text-red-600 group-hover:scale-115 group-hover:rotate-3 transition-all duration-300">
+              <XCircle className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* High Risk Cases */}
+        <Card className="relative card-lift cursor-pointer overflow-hidden border border-red-100 bg-red-50/10 hover:border-red-200 transition-all duration-300 shadow-sm hover:shadow-md group">
+          <div className="h-1 w-full absolute top-0 left-0 bg-gradient-to-r from-red-500 to-rose-600" />
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">High Risk Cases</p>
+              <div className="flex items-baseline gap-2 mt-1.5">
+                <span className="text-3xl font-extrabold text-red-700 animate-count-up">{highRiskCount}</span>
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total</span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-red-50 text-red-600 group-hover:scale-115 group-hover:rotate-3 transition-all duration-300">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Assigned Mothers */}
+        <Card className="relative card-lift cursor-pointer overflow-hidden border border-gray-100 hover:border-gray-250/85 transition-all duration-300 shadow-sm hover:shadow-md group">
+          <div className="h-1 w-full absolute top-0 left-0 bg-gradient-to-r from-blue-500 to-indigo-500" />
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Assigned Mothers</p>
+              <p className="text-3xl font-extrabold text-gray-900 mt-1.5 animate-count-up">{totalAssignedMothers}</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-blue-50 text-[#2563EB] group-hover:scale-115 group-hover:rotate-3 transition-all duration-300">
+              <Users className="h-6 w-6" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Search & Filters */}
-      <Card>
+      <Card className="border border-gray-100 shadow-sm">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name or email..."
+                placeholder="Search midwives by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-all"
               />
             </div>
             <Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               options={[
-                { value: 'active', label: 'Active Midwives' },
-                { value: 'inactive', label: 'Inactive Midwives' },
+                { value: 'all', label: 'All Statuses' },
+                { value: 'active', label: 'Active Midwives Only' },
+                { value: 'inactive', label: 'Inactive Midwives Only' },
               ]}
               placeholder="Filter by status"
+              className="rounded-xl border-gray-200 focus:ring-2 focus:ring-[#2563EB]"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Midwives List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-purple-500" />
+      <Card className="border border-gray-100 shadow-sm overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-gray-50/50 to-white/30 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+            <UserPlus className="h-5 w-5 text-[#2563EB]" />
             Registered Midwives ({midwives.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {midwives.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-gray-50/70">
                   <TableRow>
-                    <TableHead>Midwife</TableHead>
-                    <TableHead>License #</TableHead>
-                    <TableHead>Specialization</TableHead>
-                    <TableHead>Work Area</TableHead>
-                    <TableHead>Experience</TableHead>
-                    <TableHead>Assigned Mothers</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="font-bold text-gray-700">Midwife</TableHead>
+                    <TableHead className="font-bold text-gray-700">License #</TableHead>
+                    <TableHead className="font-bold text-gray-700">Specialization</TableHead>
+                    <TableHead className="font-bold text-gray-700">Work Area</TableHead>
+                    <TableHead className="font-bold text-gray-700">Experience</TableHead>
+                    <TableHead className="font-bold text-gray-700">Assigned Mothers</TableHead>
+                    <TableHead className="font-bold text-gray-700">Status</TableHead>
+                    <TableHead className="font-bold text-gray-700 text-right pr-6">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="divide-y divide-gray-100">
                   {midwives.map((midwife) => (
-                    <TableRow key={midwife.id}>
-                      <TableCell>
+                    <TableRow key={midwife.id} className="hover:bg-gray-50/40 transition-colors">
+                      <TableCell className="py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                            <span className="text-purple-700 font-semibold">
-                              {midwife.user.name.charAt(0).toUpperCase()}
-                            </span>
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563EB] to-indigo-500 flex items-center justify-center text-white font-bold shadow-sm shrink-0">
+                            <span>{midwife.user.name.charAt(0).toUpperCase()}</span>
                           </div>
                           <div>
-                            <p className="font-medium">{midwife.user.name}</p>
-                            <p className="text-xs text-gray-500">{midwife.user.email}</p>
+                            <p className="font-bold text-gray-950 text-sm leading-none">{midwife.user.name}</p>
+                            <p className="text-xs text-gray-400 mt-1">{midwife.user.email}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                        <code className="bg-gray-50 border border-gray-150 px-2.5 py-0.5 rounded-lg text-xs font-bold text-gray-600 tracking-wider">
                           {midwife.licenseNumber || 'N/A'}
                         </code>
                       </TableCell>
-                      <TableCell>{midwife.specialization || 'N/A'}</TableCell>
-                      <TableCell>{midwife.workArea || 'N/A'}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-sm font-medium text-gray-700">{midwife.specialization || 'N/A'}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{midwife.workArea || 'N/A'}</TableCell>
+                      <TableCell className="text-sm text-gray-600">
                         {midwife.experience ? `${midwife.experience} years` : 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="info">{midwife._count.assignedMothers}</Badge>
+                        <Badge variant="info" className="font-bold text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full py-0.5 px-2.5 shadow-sm">
+                          {midwife._count.assignedMothers}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {midwife.user.isActive ? (
-                          <Badge variant="success">Active</Badge>
+                          <Badge variant="success" className="font-bold text-[10px] uppercase rounded-full tracking-wider py-0.5 px-2.5 shadow-sm">
+                            Active
+                          </Badge>
                         ) : (
-                          <Badge variant="danger">Inactive</Badge>
+                          <Badge variant="danger" className="font-bold text-[10px] uppercase rounded-full tracking-wider py-0.5 px-2.5 shadow-sm">
+                            Inactive
+                          </Badge>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
+                      <TableCell className="text-right pr-6">
+                        <div className="flex items-center justify-end gap-1.5">
                           <Button
                             size="sm"
                             variant="outline"
+                            className="rounded-lg h-9 w-9 p-0 hover:bg-blue-50 hover:text-[#2563EB] hover:border-blue-200 transition-all border-gray-200"
                             onClick={() => openViewModal(midwife)}
                           >
                             <Eye className="h-4 w-4" />
@@ -556,6 +576,12 @@ export default function MidwivesPage() {
                           <Button
                             size="sm"
                             variant={midwife.user.isActive ? 'outline' : 'default'}
+                            className={cn(
+                              "rounded-lg h-9 w-9 p-0 transition-all",
+                              midwife.user.isActive 
+                                ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-gray-200"
+                                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                            )}
                             onClick={() => handleToggleActive(midwife)}
                             disabled={actionLoading}
                           >
@@ -568,6 +594,7 @@ export default function MidwivesPage() {
                           <Button
                             size="sm"
                             variant="danger"
+                            className="rounded-lg h-9 w-9 p-0 hover:bg-red-600 hover:text-white transition-all"
                             onClick={() => openDeleteModal(midwife)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -580,10 +607,10 @@ export default function MidwivesPage() {
               </Table>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <UserPlus className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium text-gray-500">No midwives registered</p>
-              <p className="text-sm text-gray-400">Click &quot;Register Midwife&quot; to add one</p>
+            <div className="text-center py-16">
+              <UserPlus className="h-14 w-14 mx-auto mb-4 text-gray-300 animate-float" />
+              <p className="font-bold text-gray-700 text-base">No midwives registered</p>
+              <p className="text-sm text-gray-400 font-light mt-1">Click "Register Midwife" to get started</p>
             </div>
           )}
         </CardContent>
@@ -601,52 +628,47 @@ export default function MidwivesPage() {
       >
         <form onSubmit={handleRegister}>
           {/* Progress Steps */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between">
+          <div className="mb-8">
+            <div className="flex items-center justify-between max-w-md mx-auto relative px-4">
+              {/* Connector line */}
+              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
+              <div 
+                className="absolute top-1/2 left-0 h-0.5 bg-[#2563EB] -translate-y-1/2 z-0 transition-all duration-300"
+                style={{ width: `${((formStep - 1) / 2) * 100}%` }}
+              />
+
               {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
+                <div key={step} className="flex flex-col items-center relative z-10">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                    className={cn(
+                      "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300",
                       formStep >= step
-                        ? 'bg-teal-600 text-white'
-                        : 'bg-gray-200 text-gray-500'
-                    }`}
+                        ? 'bg-[#2563EB] text-white ring-4 ring-blue-100 shadow-md'
+                        : 'bg-white border-2 border-gray-300 text-gray-500'
+                    )}
                   >
                     {step}
                   </div>
-                  {step < 3 && (
-                    <div
-                      className={`w-24 h-1 mx-2 ${
-                        formStep > step ? 'bg-teal-600' : 'bg-gray-200'
-                      }`}
-                    />
-                  )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-2 text-sm">
-              <span className={formStep >= 1 ? 'text-teal-600 font-medium' : 'text-gray-500'}>
-                Personal Info
-              </span>
-              <span className={formStep >= 2 ? 'text-teal-600 font-medium' : 'text-gray-500'}>
-                Professional
-              </span>
-              <span className={formStep >= 3 ? 'text-teal-600 font-medium' : 'text-gray-500'}>
-                Account
-              </span>
+            <div className="flex justify-between mt-3 text-xs max-w-md mx-auto px-1 font-semibold text-gray-500">
+              <span className={formStep >= 1 ? 'text-[#2563EB]' : ''}>Personal Info</span>
+              <span className={formStep >= 2 ? 'text-[#2563EB]' : ''}>Professional Details</span>
+              <span className={formStep >= 3 ? 'text-[#2563EB]' : ''}>Account Setup</span>
             </div>
           </div>
 
           {/* Step 1: Personal Information */}
           {formStep === 1 && (
             <div className="space-y-4">
-              <div className="bg-purple-50 p-4 rounded-lg mb-4">
-                <h3 className="font-semibold text-purple-900 flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+              <div className="bg-gradient-to-br from-blue-50/60 to-indigo-50/20 border border-blue-100/50 p-4 rounded-2xl mb-2">
+                <h3 className="font-bold text-[#1E40AF] flex items-center gap-2 text-sm uppercase tracking-wide">
+                  <Users className="h-4 w-4" />
                   Personal Information
                 </h3>
-                <p className="text-sm text-purple-700 mt-1">
-                  Enter the midwife&apos;s personal details
+                <p className="text-xs text-blue-700/80 font-light mt-0.5">
+                  Enter the midwife's personal details and primary contacts.
                 </p>
               </div>
 
@@ -658,7 +680,8 @@ export default function MidwivesPage() {
                     setFormData({ ...formData, firstName: e.target.value })
                   }
                   error={formErrors.firstName}
-                  placeholder="Enter first name"
+                  placeholder="First name"
+                  className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
                 />
                 <Input
                   label="Last Name *"
@@ -667,7 +690,8 @@ export default function MidwivesPage() {
                     setFormData({ ...formData, lastName: e.target.value })
                   }
                   error={formErrors.lastName}
-                  placeholder="Enter last name"
+                  placeholder="Last name"
+                  className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
                 />
               </div>
 
@@ -680,6 +704,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.email}
                 placeholder="midwife@example.com"
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Input
@@ -691,6 +716,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.phone}
                 placeholder="+94 77 123 4567"
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Textarea
@@ -699,8 +725,9 @@ export default function MidwivesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
                 }
-                placeholder="Enter full address"
+                placeholder="Enter full physical address"
                 rows={2}
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Select
@@ -710,6 +737,7 @@ export default function MidwivesPage() {
                   setFormData({ ...formData, language: e.target.value })
                 }
                 options={languageOptions}
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
             </div>
           )}
@@ -717,13 +745,13 @@ export default function MidwivesPage() {
           {/* Step 2: Professional Information */}
           {formStep === 2 && (
             <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <h3 className="font-semibold text-blue-900 flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
+              <div className="bg-gradient-to-br from-indigo-50/60 to-purple-50/20 border border-indigo-100/50 p-4 rounded-2xl mb-2">
+                <h3 className="font-bold text-indigo-950 flex items-center gap-2 text-sm uppercase tracking-wide">
+                  <Briefcase className="h-4 w-4" />
                   Professional Information
                 </h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  Enter qualifications and work details
+                <p className="text-xs text-indigo-700/80 font-light mt-0.5">
+                  Enter midwife certifications, work areas, and license details.
                 </p>
               </div>
 
@@ -735,6 +763,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.licenseNumber}
                 placeholder="e.g., MW-2024-001"
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Select
@@ -746,6 +775,7 @@ export default function MidwivesPage() {
                 options={specializationOptions.map((s) => ({ value: s, label: s }))}
                 placeholder="Select specialization"
                 error={formErrors.specialization}
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Input
@@ -759,6 +789,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.experience}
                 placeholder="e.g., 5"
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Select
@@ -770,6 +801,7 @@ export default function MidwivesPage() {
                 options={workAreaOptions.map((a) => ({ value: a, label: a }))}
                 placeholder="Select work area"
                 error={formErrors.workArea}
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Textarea
@@ -778,8 +810,9 @@ export default function MidwivesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, qualifications: e.target.value })
                 }
-                placeholder="List relevant qualifications, certifications, and training..."
+                placeholder="List qualifications, training, degree details..."
                 rows={3}
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
             </div>
           )}
@@ -787,29 +820,29 @@ export default function MidwivesPage() {
           {/* Step 3: Account Settings */}
           {formStep === 3 && (
             <div className="space-y-4">
-              <div className="bg-green-50 p-4 rounded-lg mb-4">
-                <h3 className="font-semibold text-green-900 flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
+              <div className="bg-gradient-to-br from-emerald-50/60 to-green-50/20 border border-emerald-100/50 p-4 rounded-2xl mb-2">
+                <h3 className="font-bold text-emerald-900 flex items-center gap-2 text-sm uppercase tracking-wide">
+                  <Shield className="h-4 w-4" />
                   Account Settings
                 </h3>
-                <p className="text-sm text-green-700 mt-1">
-                  Set up login credentials for the midwife
+                <p className="text-xs text-emerald-700/80 font-light mt-0.5">
+                  Establish system login passwords and notifications.
                 </p>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-700 mb-2">Account Summary</h4>
+              <div className="bg-gray-50 border border-gray-150 p-4 rounded-2xl">
+                <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-2.5">Account Summary</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="text-gray-500">Name:</span>
-                  <span className="font-medium">
+                  <span className="text-gray-500 font-medium">Name:</span>
+                  <span className="font-bold text-gray-900">
                     {formData.firstName} {formData.lastName}
                   </span>
-                  <span className="text-gray-500">Email:</span>
-                  <span className="font-medium">{formData.email}</span>
-                  <span className="text-gray-500">License:</span>
-                  <span className="font-medium">{formData.licenseNumber}</span>
-                  <span className="text-gray-500">Specialization:</span>
-                  <span className="font-medium">{formData.specialization}</span>
+                  <span className="text-gray-500 font-medium">Email:</span>
+                  <span className="font-bold text-gray-900 truncate">{formData.email}</span>
+                  <span className="text-gray-500 font-medium">License:</span>
+                  <span className="font-bold text-gray-900">{formData.licenseNumber}</span>
+                  <span className="text-gray-500 font-medium">Specialization:</span>
+                  <span className="font-bold text-gray-900">{formData.specialization}</span>
                 </div>
               </div>
 
@@ -822,6 +855,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.password}
                 placeholder="Minimum 8 characters"
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
               <Input
@@ -833,9 +867,10 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.confirmPassword}
                 placeholder="Re-enter password"
+                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
               />
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5 py-1">
                 <input
                   type="checkbox"
                   id="sendWelcomeEmail"
@@ -843,25 +878,24 @@ export default function MidwivesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, sendWelcomeEmail: e.target.checked })
                   }
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  className="h-4 w-4 rounded border-gray-300 text-[#2563EB] focus:ring-[#2563EB]"
                 />
-                <label htmlFor="sendWelcomeEmail" className="text-sm text-gray-700">
+                <label htmlFor="sendWelcomeEmail" className="text-sm text-gray-600 font-medium cursor-pointer">
                   Send welcome email with login credentials
                 </label>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-                <strong>Note:</strong> The midwife will use their email and password to log in
-                to the CareNest system. Make sure to securely share the credentials.
+              <div className="bg-yellow-50 border border-yellow-200/60 rounded-xl p-3.5 text-xs text-yellow-800 leading-relaxed font-medium">
+                <strong>Important Note:</strong> The midwife will log in using this email address and password. Please share these login details securely.
               </div>
             </div>
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-6 pt-4 border-t">
+          <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
             <div>
               {formStep > 1 && (
-                <Button type="button" variant="outline" onClick={handlePrevStep}>
+                <Button type="button" variant="outline" className="rounded-xl px-5" onClick={handlePrevStep}>
                   Previous
                 </Button>
               )}
@@ -870,6 +904,7 @@ export default function MidwivesPage() {
               <Button
                 type="button"
                 variant="outline"
+                className="rounded-xl px-5"
                 onClick={() => {
                   setShowRegisterModal(false);
                   resetForm();
@@ -878,11 +913,11 @@ export default function MidwivesPage() {
                 Cancel
               </Button>
               {formStep < 3 ? (
-                <Button type="button" onClick={handleNextStep}>
+                <Button type="button" className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl px-5 transition-all" onClick={handleNextStep}>
                   Next Step
                 </Button>
               ) : (
-                <Button type="submit" disabled={actionLoading}>
+                <Button type="submit" className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl px-6 transition-all" disabled={actionLoading}>
                   {actionLoading ? 'Registering...' : 'Register Midwife'}
                 </Button>
               )}
@@ -904,72 +939,72 @@ export default function MidwivesPage() {
         {selectedMidwife && (
           <div className="space-y-6">
             {/* Profile Header */}
-            <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg">
-              <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center">
-                <span className="text-purple-700 text-2xl font-bold">
-                  {selectedMidwife.user.name.charAt(0).toUpperCase()}
-                </span>
+            <div className="flex items-center gap-4 p-5 bg-gradient-to-br from-[#2563EB]/10 via-indigo-50/5 to-[#F472B6]/5 rounded-2xl border border-gray-100/60 shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2563EB] to-indigo-500 flex items-center justify-center text-white text-2xl font-bold shadow-md shrink-0">
+                <span>{selectedMidwife.user.name.charAt(0).toUpperCase()}</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-lg font-extrabold text-gray-900 tracking-tight">
                   {selectedMidwife.user.name}
                 </h3>
-                <p className="text-gray-500">{selectedMidwife.specialization || 'Midwife'}</p>
-                {selectedMidwife.user.isActive ? (
-                  <Badge variant="success">Active</Badge>
-                ) : (
-                  <Badge variant="danger">Inactive</Badge>
-                )}
+                <p className="text-gray-500 font-medium text-sm mt-0.5">{selectedMidwife.specialization || 'Midwife'}</p>
+                <div className="mt-2">
+                  {selectedMidwife.user.isActive ? (
+                    <Badge variant="success" className="font-bold text-[9px] uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm">Active</Badge>
+                  ) : (
+                    <Badge variant="danger" className="font-bold text-[9px] uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm">Inactive</Badge>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Contact Information */}
-            <div>
-              <h4 className="font-semibold text-gray-700 mb-3">Contact Information</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="h-4 w-4 text-gray-400" />
+            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-3">
+              <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-2">Contact Information</h4>
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                  <Mail className="h-4.5 w-4.5 text-gray-400" />
                   <span>{selectedMidwife.user.email}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone className="h-4 w-4 text-gray-400" />
+                <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                  <Phone className="h-4.5 w-4.5 text-gray-400" />
                   <span>{selectedMidwife.user.phone || 'Not provided'}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="h-4 w-4 text-gray-400" />
-                  <span>{selectedMidwife.user.address || 'Not provided'}</span>
+                <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                  <MapPin className="h-4.5 w-4.5 text-gray-400 shrink-0" />
+                  <span className="leading-tight">{selectedMidwife.user.address || 'Not provided'}</span>
                 </div>
               </div>
             </div>
 
             {/* Professional Information */}
-            <div>
-              <h4 className="font-semibold text-gray-700 mb-3">Professional Details</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">License Number</p>
-                  <p className="font-medium">{selectedMidwife.licenseNumber || 'N/A'}</p>
+            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
+              <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-1">Professional Details</h4>
+              <div className="grid grid-cols-2 gap-3.5 text-sm">
+                <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">License Number</p>
+                  <p className="font-bold text-gray-900 mt-1">{selectedMidwife.licenseNumber || 'N/A'}</p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Experience</p>
-                  <p className="font-medium">
+                <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Experience</p>
+                  <p className="font-bold text-gray-900 mt-1">
                     {selectedMidwife.experience ? `${selectedMidwife.experience} years` : 'N/A'}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Work Area</p>
-                  <p className="font-medium">{selectedMidwife.workArea || 'N/A'}</p>
+                <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Work Area</p>
+                  <p className="font-bold text-gray-900 mt-1">{selectedMidwife.workArea || 'N/A'}</p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Assigned Mothers</p>
-                  <p className="font-medium">{selectedMidwife._count.assignedMothers}</p>
+                <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Assigned Mothers</p>
+                  <p className="font-bold text-gray-900 mt-1">{selectedMidwife._count.assignedMothers}</p>
                 </div>
               </div>
             </div>
 
             {/* Registration Info */}
-            <div className="text-sm text-gray-500 pt-4 border-t">
-              <p>Registered on: {formatDate(selectedMidwife.createdAt)}</p>
+            <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider pt-2 text-center">
+              Registered on: {formatDate(selectedMidwife.createdAt)}
             </div>
           </div>
         )}
@@ -986,31 +1021,32 @@ export default function MidwivesPage() {
         size="sm"
       >
         <div className="space-y-4">
-          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
-            <Trash2 className="h-8 w-8 text-red-600" />
+          <div className="flex items-center gap-3.5 p-4 bg-red-50 border border-red-100 rounded-2xl">
+            <Trash2 className="h-8 w-8 text-red-600 shrink-0" />
             <div>
-              <p className="font-medium text-red-900">
+              <p className="font-bold text-red-950 text-sm">
                 Are you sure you want to delete this midwife?
               </p>
-              <p className="text-sm text-red-700">This action cannot be undone.</p>
+              <p className="text-xs text-red-700/90 font-light mt-0.5">This action is permanent and cannot be undone.</p>
             </div>
           </div>
 
           {selectedMidwife && (
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium">{selectedMidwife.user.name}</p>
-              <p className="text-sm text-gray-500">{selectedMidwife.user.email}</p>
+            <div className="p-4 bg-gray-50 border border-gray-150 rounded-2xl space-y-1">
+              <p className="font-bold text-gray-900 text-sm">{selectedMidwife.user.name}</p>
+              <p className="text-xs text-gray-500 font-medium">{selectedMidwife.user.email}</p>
               {selectedMidwife._count.assignedMothers > 0 && (
-                <p className="text-sm text-orange-600 mt-2">
-                  ⚠️ This midwife has {selectedMidwife._count.assignedMothers} assigned mother(s)
-                </p>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-xl mt-3">
+                  <span>⚠️ This midwife has {selectedMidwife._count.assignedMothers} assigned mother(s)</span>
+                </div>
               )}
             </div>
           )}
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 pt-2">
             <Button
               variant="outline"
+              className="rounded-xl px-4"
               onClick={() => {
                 setShowDeleteModal(false);
                 setSelectedMidwife(null);
@@ -1018,12 +1054,48 @@ export default function MidwivesPage() {
             >
               Cancel
             </Button>
-            <Button variant="danger" onClick={handleDelete} disabled={actionLoading}>
+            <Button variant="danger" className="rounded-xl px-5" onClick={handleDelete} disabled={actionLoading}>
               {actionLoading ? 'Deleting...' : 'Delete Midwife'}
             </Button>
           </div>
         </div>
       </Modal>
     </div>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  icon,
+  href,
+  bgAccent,
+  borderAccent,
+  delay,
+}: {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  href: string;
+  bgAccent: string;
+  borderAccent: string;
+  delay: string;
+}) {
+  return (
+    <Link href={href}>
+      <Card className={`relative card-lift cursor-pointer animate-fade-in-up ${delay} overflow-hidden group border border-gray-100 hover:border-gray-250/80 transition-all duration-300 shadow-sm hover:shadow-md`}>
+        {/* Top accent line */}
+        <div className={`h-1 w-full absolute top-0 left-0 bg-gradient-to-r ${borderAccent}`} />
+        <CardContent className="flex items-center justify-between p-6">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{title}</p>
+            <p className="text-3xl font-extrabold text-gray-900 mt-1.5 animate-count-up">{value}</p>
+          </div>
+          <div className={`p-3.5 rounded-2xl ${bgAccent} shadow-sm group-hover:scale-115 group-hover:rotate-3 transition-all duration-300`}>
+            {icon}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
