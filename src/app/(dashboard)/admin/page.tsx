@@ -14,7 +14,12 @@ interface DashboardData {
   totalChildren: number;
   visitsThisMonth: number;
   vaccinationsThisMonth: number;
-  recentRegistrations: any[];
+  recentRegistrations: {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+  }[];
 }
 
 export default function AdminDashboard() {
@@ -121,7 +126,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dashboardData.recentRegistrations.map((user: any) => (
+                  {dashboardData.recentRegistrations.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>

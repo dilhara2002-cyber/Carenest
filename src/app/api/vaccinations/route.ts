@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const dateTo = searchParams.get('dateTo');
     const upcoming = searchParams.get('upcoming');
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     // Search filter - search in vaccine name
     if (search) {
@@ -291,7 +291,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    const updateData: any = { ...rest };
+    const updateData: Record<string, unknown> = { ...rest };
     
     if (status) updateData.status = status;
     if (administeredDate) updateData.administeredDate = new Date(administeredDate);

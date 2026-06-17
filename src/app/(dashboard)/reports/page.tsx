@@ -15,7 +15,11 @@ export default function ReportsPage() {
   const [endDate, setEndDate] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [documentTypes, setDocumentTypes] = useState<any[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<{
+    id: string;
+    name: string;
+    createdAt: string;
+  }[]>([]);
   const [newDocTypeName, setNewDocTypeName] = useState('');
   const [docTypeLoading, setDocTypeLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -178,7 +182,7 @@ export default function ReportsPage() {
                   Existing Document Types
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {documentTypes.map((docType: any) => (
+                  {documentTypes.map((docType: { id: string; name: string; _count?: { documents: number } }) => (
                     <div
                       key={docType.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"

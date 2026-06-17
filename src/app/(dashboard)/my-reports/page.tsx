@@ -68,7 +68,7 @@ export default function MyReportsPage() {
     // 2. Filter by Selected Date Range Window
     if (dateRange !== 'all') {
       const now = new Date();
-      let startBoundary = new Date();
+      const startBoundary = new Date();
 
       if (dateRange === 'week') {
         startBoundary.setDate(now.getDate() - 7);

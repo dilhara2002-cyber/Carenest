@@ -8,11 +8,39 @@ import { formatDate, formatDateTime } from '@/lib/utils';
 
 export default function VisitsPage() {
   const { data: session } = useSession();
-  const [visits, setVisits] = useState<any[]>([]);
+  const [visits, setVisits] = useState<{
+    id: string;
+    visitType: string;
+    visitDate: string;
+    status: string;
+    notes?: string | null;
+    mother?: {
+      user?: {
+        name: string;
+      };
+    };
+    midwife?: {
+      user?: {
+        name: string;
+      };
+    };
+  }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [selectedVisit, setSelectedVisit] = useState<any>(null);
-  const [mothers, setMothers] = useState<any[]>([]);
+  const [selectedVisit, setSelectedVisit] = useState<{
+    id: string;
+    visitType: string;
+    visitDate: string;
+    status: string;
+    notes?: string | null;
+  } | null>(null);
+  const [mothers, setMothers] = useState<{
+    id: string;
+    user: {
+      name: string;
+      email: string;
+    };
+  }[]>([]);
   const [formData, setFormData] = useState({
     motherId: '',
     visitType: 'ANTENATAL',

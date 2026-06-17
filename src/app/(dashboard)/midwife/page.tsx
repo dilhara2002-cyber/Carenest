@@ -11,11 +11,36 @@ interface DashboardData {
   assignedMothers: number;
   activePregnancies: number;
   todayVisits: number;
-  upcomingVisits: any[];
+  upcomingVisits: {
+    id: string;
+    visitDate: string;
+    visitType: string;
+    mother?: {
+      user?: {
+        name: string;
+      };
+    };
+  }[];
   pendingVaccinations: number;
   completedVisitsThisMonth: number;
   highRiskCases: number;
-  pregnancyOverview: any[];
+  pregnancyOverview: {
+    id: string;
+    motherName: string;
+    highRisk: boolean;
+    currentWeek?: number;
+    progress?: {
+      weeks: number;
+      days: number;
+      month: number;
+      trimester: number;
+      trimesterLabel: string;
+      percentComplete: number;
+      daysRemaining: number;
+      isOverdue: boolean;
+      expectedDeliveryDate: string;
+    };
+  }[];
 }
 
 export default function MidwifeDashboard() {
@@ -109,7 +134,7 @@ export default function MidwifeDashboard() {
           <CardContent>
             {dashboardData?.upcomingVisits && dashboardData.upcomingVisits.length > 0 ? (
               <div className="space-y-3">
-                {dashboardData.upcomingVisits.map((visit: any) => (
+                {dashboardData.upcomingVisits.map((visit) => (
                   <div
                     key={visit.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -217,7 +242,7 @@ export default function MidwifeDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {dashboardData.pregnancyOverview.map((item: any) => (
+              {dashboardData.pregnancyOverview.map((item) => (
                 <div
                   key={item.id}
                   className={`p-4 rounded-lg border ${item.highRisk ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'}`}

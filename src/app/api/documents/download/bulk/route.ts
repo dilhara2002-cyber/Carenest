@@ -11,7 +11,7 @@ const { ZipArchive } = require('archiver') as {
         pipe: (dest: NodeJS.WritableStream) => void;
         append: (source: Buffer, opts: { name: string }) => void;
         finalize: () => Promise<void>;
-        on: (event: string, cb: (...args: any[]) => void) => void;
+        on: (event: string, cb: (...args: unknown[]) => void) => void;
     };
 };
 

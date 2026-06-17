@@ -32,8 +32,17 @@ interface Mother {
     id: string;
     user: { name: string; email: string; phone: string | null };
   } | null;
-  pregnancies?: any[];
-  children?: any[];
+  pregnancies?: {
+    id: string;
+    lastMenstrualPeriod?: string | null;
+    expectedDeliveryDate?: string | null;
+    highRisk?: boolean;
+  }[];
+  children?: {
+    id: string;
+    name: string;
+    dateOfBirth: string;
+  }[];
 }
 
 interface Midwife {
@@ -1012,7 +1021,7 @@ export default function MothersPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Pregnancies</h3>
                 {(() => {
-                  const activePreg = selectedMother.pregnancies?.find((p: any) => p.status === 'ACTIVE');
+                  const activePreg = selectedMother.pregnancies?.find((p: { status: string }) => p.status === 'ACTIVE');
                   const progress = activePreg ? getPregnancyProgress(activePreg.lastMenstrualPeriod) : null;
                   if (activePreg && progress) {
                     return (

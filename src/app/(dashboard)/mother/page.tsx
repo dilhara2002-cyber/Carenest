@@ -10,7 +10,12 @@ import ChildGrowthWidget from '@/components/ChildGrowthWidget';
 import AssignedMidwifeCard, { AssignedMidwife } from '@/components/AssignedMidwifeCard';
 
 interface DashboardData {
-  activePregnancy: any;
+  activePregnancy: {
+    id: string;
+    lastMenstrualPeriod?: string | null;
+    expectedDeliveryDate?: string | null;
+    highRisk?: boolean;
+  } | null;
   childrenCount: number;
   upcomingVisits: number;
   pendingVaccinations: number;

@@ -470,14 +470,6 @@ export default function MidwivesPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md 
-            text-black placeholder:text-gray-500 bg-white
-             focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
             </div>
             <Select
               value={statusFilter}
@@ -591,7 +583,7 @@ export default function MidwivesPage() {
             <div className="text-center py-8">
               <UserPlus className="h-12 w-12 mx-auto mb-3 text-gray-300" />
               <p className="font-medium text-gray-500">No midwives registered</p>
-              <p className="text-sm text-gray-400">Click "Register Midwife" to add one</p>
+              <p className="text-sm text-gray-400">Click &quot;Register Midwife&quot; to add one</p>
             </div>
           )}
         </CardContent>
@@ -654,7 +646,7 @@ export default function MidwivesPage() {
                   Personal Information
                 </h3>
                 <p className="text-sm text-purple-700 mt-1">
-                  Enter the midwife's personal details
+                  Enter the midwife&apos;s personal details
                 </p>
               </div>
 
