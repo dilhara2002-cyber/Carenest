@@ -122,19 +122,6 @@ export function Sidebar() {
 
           {/* User section */}
           <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
-                <span className="text-teal-700 font-medium">
-                  {session?.user?.name?.charAt(0) || 'U'}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {session?.user?.name || 'User'}
-                </p>
-                <p className="text-xs text-gray-500 truncate">{userRole}</p>
-              </div>
-            </div>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"

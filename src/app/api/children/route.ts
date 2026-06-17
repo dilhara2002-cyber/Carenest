@@ -14,7 +14,12 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const motherId = searchParams.get('motherId');
 
-    const where: any = {};
+    const where: {
+      motherId?: string;
+      mother?: {
+        assignedMidwifeId?: string;
+      };
+    } = {};
 
     if (motherId) {
       where.motherId = motherId;

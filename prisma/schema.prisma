@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // User roles enum
@@ -326,11 +327,12 @@ model DocumentType {
 // Document - Health documents stored in Supabase
 model Document {
   id             String       @id @default(cuid())
-  fileUrl        String       // Secure link to the Supabase storage bucket
+  fileUrl        String       // Secure link or placeholder
   fileName       String       // Original uploaded file name
   documentTypeId String
   motherId       String
   uploadedAt     DateTime     @default(now())
+  fileData       Bytes?       // Binary PDF data stored directly in PostgreSQL
 
   // Relations
   documentType   DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)

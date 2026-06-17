@@ -96,9 +96,16 @@ export async function PATCH(
     } = body;
 
     // Update in transaction
-    const result = await prisma.$transaction(async (tx) => {
+     const result = await prisma.$transaction(async (tx) => {
       // Update user fields
-      const userUpdate: any = {};
+      const userUpdate: {
+        name?: string;
+        email?: string;
+        phone?: string | null;
+        address?: string | null;
+        language?: string;
+        isActive?: boolean;
+      } = {};
       if (name !== undefined) userUpdate.name = name;
       if (email !== undefined) userUpdate.email = email;
       if (phone !== undefined) userUpdate.phone = phone;
@@ -114,7 +121,12 @@ export async function PATCH(
       }
 
       // Update midwife fields
-      const midwifeUpdate: any = {};
+      const midwifeUpdate: {
+        licenseNumber?: string | null;
+        specialization?: string | null;
+        experience?: number | null;
+        workArea?: string | null;
+      } = {};
       if (licenseNumber !== undefined) midwifeUpdate.licenseNumber = licenseNumber;
       if (specialization !== undefined) midwifeUpdate.specialization = specialization;
       if (experience !== undefined) midwifeUpdate.experience = parseInt(experience) || null;

@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const visitType = searchParams.get('visitType');
     const upcoming = searchParams.get('upcoming');
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (motherId) where.motherId = motherId;
     if (midwifeId) where.midwifeId = midwifeId;

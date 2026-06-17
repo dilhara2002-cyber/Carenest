@@ -115,6 +115,7 @@ export function LocationPickerMap({ latitude, longitude, onPick }: LocationPicke
 
   useEffect(() => {
     if (!apiKey) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Early return with error state is intentional
       setLoading(false);
       setLoadError('Google Maps API key is missing.');
       return;
@@ -147,7 +148,7 @@ export function LocationPickerMap({ latitude, longitude, onPick }: LocationPicke
 
         mapRef.current = map;
 
-        mapClickListenerRef.current = map.addListener('click', (event) => {
+        mapClickListenerRef.current = map.addListener('click', (event: google.maps.MapMouseEvent) => {
           if (!event.latLng) return;
 
           setMarkerPosition(maps, event.latLng);

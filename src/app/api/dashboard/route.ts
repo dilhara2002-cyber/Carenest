@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
         upcomingVisits,
         pendingVaccinations,
         unreadNotifications,
+        motherProfile,
       ] = await Promise.all([
         prisma.pregnancy.findMany({
           where: { motherId, status: 'ACTIVE' },
@@ -49,6 +50,30 @@ export async function GET(req: NextRequest) {
         prisma.notification.count({
           where: { userId: session.user.id, status: 'UNREAD' },
         }),
+        prisma.mother.findUnique({
+          where: { id: motherId },
+          select: {
+            assignedMidwife: {
+              select: {
+                id: true,
+                userId: true,
+                licenseNumber: true,
+                specialization: true,
+                workArea: true,
+                experience: true,
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                    phone: true,
+                    profileImage: true,
+                    isActive: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
       ]);
 
       const activePregnancy = pregnancies[0] || null;
@@ -65,6 +90,7 @@ export async function GET(req: NextRequest) {
           upcomingVisits,
           pendingVaccinations,
           unreadNotifications,
+          assignedMidwife: motherProfile?.assignedMidwife ?? null,
         },
       });
     }

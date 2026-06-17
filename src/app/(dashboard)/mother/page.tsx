@@ -7,13 +7,20 @@ import { Heart, Calendar, Syringe, Bell, Baby, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import ChildGrowthWidget from '@/components/ChildGrowthWidget';
+import AssignedMidwifeCard, { AssignedMidwife } from '@/components/AssignedMidwifeCard';
 
 interface DashboardData {
-  activePregnancy: any;
+  activePregnancy: {
+    id: string;
+    lastMenstrualPeriod?: string | null;
+    expectedDeliveryDate?: string | null;
+    highRisk?: boolean;
+  } | null;
   childrenCount: number;
   upcomingVisits: number;
   pendingVaccinations: number;
   unreadNotifications: number;
+  assignedMidwife: AssignedMidwife | null;
 }
 
 export default function MotherDashboard() {
@@ -67,7 +74,13 @@ export default function MotherDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Pregnancy"
-          value={pregnancy?.progress ? `Week ${pregnancy.progress.weeks}` : pregnancy ? `Week ${pregnancy.currentWeek || '?'}` : 'Not Active'}
+          value={
+            pregnancy?.progress
+              ? `Week ${pregnancy.progress.weeks}`
+              : pregnancy
+              ? `Week ${pregnancy.currentWeek || '?'}`
+              : 'Not Active'
+          }
           icon={<Heart className="h-6 w-6 text-pink-500" />}
           href="/pregnancies"
           color="pink"
@@ -174,7 +187,6 @@ export default function MotherDashboard() {
                   </div>
                 </>
               ) : (
-                /* Fallback for pregnancies without LMP */
                 <>
                   <div>
                     <div className="flex justify-between text-sm mb-2">
@@ -208,6 +220,9 @@ export default function MotherDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* Assigned Midwife Card */}
+      <AssignedMidwifeCard midwife={dashboardData?.assignedMidwife ?? null} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
