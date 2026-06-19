@@ -17,12 +17,12 @@ export async function GET(req: NextRequest) {
 
     const where: {
       userId: string;
-      status?: string;
+      status?: 'READ' | 'UNREAD';
     } = {
       userId: session.user.id,
     };
 
-    if (status) {
+    if (status === 'READ' || status === 'UNREAD') {
       where.status = status;
     }
 
