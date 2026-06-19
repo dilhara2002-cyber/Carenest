@@ -176,10 +176,50 @@ export async function POST(req: NextRequest) {
       data: vaccinations,
     });
 
-    // Get mother for notification
+    // Get mother for notification and visit generation
     const mother = await prisma.mother.findUnique({
       where: { id: motherId },
       include: { user: true },
+    });
+
+    // Generate 4 mandatory postnatal visits
+    const postnatalWindows = [
+      { visitNumber: 1, startDays: 0, endDays: 5, suggestedDays: 3, isMoh: false },
+      { visitNumber: 2, startDays: 6, endDays: 10, suggestedDays: 8, isMoh: false },
+      { visitNumber: 3, startDays: 14, endDays: 21, suggestedDays: 18, isMoh: true },
+      { visitNumber: 4, startDays: 42, endDays: 42, suggestedDays: 42, isMoh: false },
+    ];
+
+    const getOffsetDate = (days: number): Date => {
+      const d = new Date(birthDateObj);
+      d.setDate(d.getDate() + days);
+      d.setHours(9, 0, 0, 0); // Default schedule time to 9 AM
+      return d;
+    };
+
+    const postnatalVisits = postnatalWindows.map((w) => {
+      const windowStart = getOffsetDate(w.startDays);
+      const windowEnd = getOffsetDate(w.endDays);
+      const visitDate = getOffsetDate(w.suggestedDays);
+
+      return {
+        motherId,
+        midwifeId: mother?.assignedMidwifeId || session.user.midwifeId || '',
+        visitType: 'POSTNATAL' as const,
+        visitDate,
+        status: 'SCHEDULED' as const,
+        notes: `Mandatory postnatal visit ${w.visitNumber}${w.isMoh ? ' (MOH Doctor Clinic visit required)' : ''}`,
+        postnatalVisitNumber: w.visitNumber,
+        postnatalWindowStart: windowStart,
+        postnatalWindowEnd: windowEnd,
+        isPostnatalMandatory: true,
+        isMohVisitRequired: w.isMoh,
+        childId: child.id,
+      };
+    });
+
+    await prisma.visit.createMany({
+      data: postnatalVisits,
     });
 
     // Create notification for mother
@@ -187,10 +227,10 @@ export async function POST(req: NextRequest) {
       await prisma.notification.create({
         data: {
           userId: mother.userId,
-          title: 'Child Registered',
-          message: `${name} has been registered. Vaccination schedule has been created.`,
+          title: 'Child Registered & Postnatal Visits Scheduled',
+          message: `${name} has been registered. Vaccination schedule and 4 mandatory postnatal visits have been created.`,
           type: 'INFO',
-          link: '/children',
+          link: '/visits',
         },
       });
     }
@@ -202,7 +242,7 @@ export async function POST(req: NextRequest) {
         action: 'CHILD_REGISTERED',
         entity: 'Child',
         entityId: child.id,
-        details: `Child ${name} registered for ${mother?.user?.name || 'mother'}`,
+        details: `Child ${name} registered for ${mother?.user?.name || 'mother'}. Generated vaccinations and postnatal visits.`,
       },
     });
 
