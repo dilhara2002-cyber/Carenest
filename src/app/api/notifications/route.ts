@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
+import { NotificationStatus } from '@prisma/client';
+
 // Get notifications
 export async function GET(req: NextRequest) {
   try {
@@ -17,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     const where: {
       userId: string;
-      status?: 'READ' | 'UNREAD';
+      status?: NotificationStatus;
     } = {
       userId: session.user.id,
     };

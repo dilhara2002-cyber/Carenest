@@ -47,6 +47,12 @@ enum Gender {
   FEMALE
 }
 
+enum ThriposhaRecipientType {
+  PREGNANT_MOTHER
+  LACTATING_MOTHER
+  CHILD_UNDER_5
+}
+
 // User Table - Base user authentication
 model User {
   id            String    @id @default(cuid())
@@ -108,6 +114,7 @@ model Mother {
   vaccinations          Vaccination[]
   aiCareRecords         AICareRecord[]
   documents             Document[]
+  thriposhaDistributions ThriposhaDistribution[]
 
   @@map("mothers")
 }
@@ -128,6 +135,7 @@ model Midwife {
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedMothers Mother[]
   visits          Visit[]
+  thriposhaDistributions ThriposhaDistribution[]
 
   @@map("midwives")
 }
@@ -177,6 +185,7 @@ model Child {
   growthRecords GrowthRecord[]
   vaccinations  Vaccination[]
   visits        Visit[]   // Postnatal visits linked to this child
+  thriposhaDistributions ThriposhaDistribution[]
 
   @@map("children")
 }
@@ -360,4 +369,45 @@ model Document {
   mother         Mother       @relation(fields: [motherId], references: [id], onDelete: Cascade)
 
   @@map("documents")
+}
+
+// Thriposha Distribution Record
+model ThriposhaDistribution {
+  id               String                  @id @default(cuid())
+  motherId         String?
+  childId          String?
+  midwifeId        String
+  recipientType    ThriposhaRecipientType
+  quantity         Decimal                 @db.Decimal(5, 2) // in kg
+  distributionDate DateTime                @default(now())
+  month            Int                     // 1-12, the calendar month this covers
+  year             Int                     // e.g. 2026
+  batchNumber      String?
+  notes            String?
+
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  // Relations
+  mother           Mother?                 @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  child            Child?                  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  midwife          Midwife                 @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+
+  @@map("thriposha_distributions")
+}
+
+// Thriposha Stock Record
+model ThriposhaStock {
+  id            String    @id @default(cuid())
+  receivedDate  DateTime  @default(now())
+  quantity      Decimal   @db.Decimal(8, 2) // in kg
+  batchNumber   String?
+  supplier      String?
+  expiryDate    DateTime?
+  notes         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("thriposha_stock")
 }
