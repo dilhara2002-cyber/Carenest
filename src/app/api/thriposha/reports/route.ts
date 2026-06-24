@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { ThriposhaPacketType } from '@prisma/client';
 
 // Get Thriposha reports — monthly aggregation
 export async function GET(req: NextRequest) {
@@ -61,6 +62,22 @@ export async function GET(req: NextRequest) {
         Math.round(byRecipientType[key].totalKg * 100) / 100;
     }
 
+    // Breakdown by packet color type
+    const byPacketType: Record<ThriposhaPacketType, { count: number; totalKg: number }> = {
+      RED: { count: 0, totalKg: 0 },
+      ORANGE: { count: 0, totalKg: 0 },
+      YELLOW: { count: 0, totalKg: 0 },
+    };
+    for (const d of distributions) {
+      if (d.packetType && byPacketType[d.packetType]) {
+        byPacketType[d.packetType].count += 1;
+        byPacketType[d.packetType].totalKg += Number(d.quantity);
+      }
+    }
+    for (const key of Object.keys(byPacketType) as ThriposhaPacketType[]) {
+      byPacketType[key].totalKg = Math.round(byPacketType[key].totalKg * 100) / 100;
+    }
+
     // By midwife breakdown
     const midwifeMap: Record<
       string,
@@ -94,6 +111,30 @@ export async function GET(req: NextRequest) {
     });
     const allDistributedKg = Number(allDistributedAgg._sum.quantity || 0);
 
+    // Sum received by packetType
+    const receivedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
+    for (const s of stockRecords) {
+      receivedByColor[s.packetType] = (receivedByColor[s.packetType] || 0) + Number(s.quantity);
+    }
+
+    // Sum distributed by packetType
+    const distributedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
+    const distributionsGroupBy = await prisma.thriposhaDistribution.groupBy({
+      by: ['packetType'],
+      _sum: { quantity: true },
+    });
+    for (const item of distributionsGroupBy) {
+      if (item.packetType) {
+        distributedByColor[item.packetType] = Number(item._sum.quantity || 0);
+      }
+    }
+
+    const remainingByColor = {
+      RED: Math.round((receivedByColor.RED - distributedByColor.RED) * 100) / 100,
+      ORANGE: Math.round((receivedByColor.ORANGE - distributedByColor.ORANGE) * 100) / 100,
+      YELLOW: Math.round((receivedByColor.YELLOW - distributedByColor.YELLOW) * 100) / 100,
+    };
+
     // Monthly trend (last 6 months)
     const monthlyTrend = [];
     for (let i = 5; i >= 0; i--) {
@@ -126,12 +167,18 @@ export async function GET(req: NextRequest) {
         totalDistributedKg: Math.round(totalDistributedKg * 100) / 100,
         totalBeneficiaries,
         byRecipientType,
+        byPacketType,
         byMidwife,
         stockSummary: {
           totalReceivedKg: Math.round(totalReceivedKg * 100) / 100,
           totalDistributedKg: Math.round(allDistributedKg * 100) / 100,
           remainingKg:
             Math.round((totalReceivedKg - allDistributedKg) * 100) / 100,
+          byColor: {
+            received: receivedByColor,
+            distributed: distributedByColor,
+            remaining: remainingByColor,
+          }
         },
         monthlyTrend,
         distributions,

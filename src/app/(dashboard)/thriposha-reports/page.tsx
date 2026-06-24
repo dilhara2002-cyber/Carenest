@@ -22,6 +22,11 @@ interface ReportData {
     totalReceivedKg: number;
     totalDistributedKg: number;
     remainingKg: number;
+    byColor?: {
+      received: Record<string, number>;
+      distributed: Record<string, number>;
+      remaining: Record<string, number>;
+    };
   };
   monthlyTrend: { month: number; year: number; totalKg: number; count: number; label: string }[];
 }
@@ -30,6 +35,8 @@ interface StockRecord {
   id: string;
   receivedDate: string;
   quantity: number;
+  remainingQuantity: number;
+  packetType: 'RED' | 'ORANGE' | 'YELLOW';
   batchNumber: string | null;
   supplier: string | null;
   expiryDate: string | null;
@@ -42,6 +49,11 @@ interface StockData {
     totalReceivedKg: number;
     totalDistributedKg: number;
     remainingKg: number;
+    byColor: {
+      received: Record<string, number>;
+      distributed: Record<string, number>;
+      remaining: Record<string, number>;
+    };
   };
 }
 
@@ -74,6 +86,7 @@ export default function ThriposhaReportsPage() {
   const [showStockForm, setShowStockForm] = useState(false);
   const [stockForm, setStockForm] = useState({
     quantity: '',
+    packetType: 'YELLOW',
     batchNumber: '',
     supplier: '',
     expiryDate: '',
@@ -141,7 +154,7 @@ export default function ThriposhaReportsPage() {
       });
 
       if (res.ok) {
-        setStockForm({ quantity: '', batchNumber: '', supplier: '', expiryDate: '', receivedDate: '', notes: '' });
+        setStockForm({ quantity: '', packetType: 'YELLOW', batchNumber: '', supplier: '', expiryDate: '', receivedDate: '', notes: '' });
         setShowStockForm(false);
         await fetchStockData();
         await fetchReportData();
@@ -473,15 +486,15 @@ export default function ThriposhaReportsPage() {
         </div>
       )}
 
-      {/* ── Stock Management ── */}
-      <div className="animate-fade-in-up bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
-          <span className="flex items-center gap-2.5 text-[#111827] font-semibold text-sm">
+      {/* ── Received Stock Section ── */}
+      <div className="animate-fade-in-up">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
             <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-50">
               <Package className="h-4 w-4 text-[#10B981]" />
             </div>
-            Stock Management
-          </span>
+            <span className="text-[#111827] font-semibold text-base">Received Stock</span>
+          </div>
           <button
             onClick={() => setShowStockForm(!showStockForm)}
             className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] bg-blue-50 hover:bg-[#2563EB] hover:text-white px-3 py-1.5 rounded-full transition-all duration-300"
@@ -491,144 +504,311 @@ export default function ThriposhaReportsPage() {
           </button>
         </div>
 
-        {/* Stock Summary */}
+        {/* Three Color Stock Cards */}
         {stockData && (
-          <div className="grid grid-cols-3 gap-4 p-6 border-b border-[#E5E7EB]">
-            <div className="text-center p-4 bg-emerald-50 rounded-xl">
-              <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Total Received</p>
-              <p className="text-xl font-extrabold text-[#10B981]">{stockData.summary.totalReceivedKg} Packets</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Yellow Stock Card */}
+            <div className="relative overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-sm">
+              <div className="h-1.5 w-full bg-[#F59E0B]" />
+              <div className="p-5">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 border border-amber-100">
+                    <span className="text-lg">🟡</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#111827]">Yellow Stock</p>
+                    <p className="text-[10px] text-[#6B7280] font-medium uppercase tracking-wider">Pregnant & Lactating Mothers</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-medium">Total Received</span>
+                    <span className="text-sm font-bold text-[#111827]">{stockData.summary.byColor?.received?.YELLOW || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-medium">Total Distributed</span>
+                    <span className="text-sm font-bold text-[#2563EB]">{stockData.summary.byColor?.distributed?.YELLOW || 0}</span>
+                  </div>
+                  <div className="h-px bg-[#F3F4F6]" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-semibold">Remaining</span>
+                    <span className={`text-lg font-extrabold ${(stockData.summary.byColor?.remaining?.YELLOW || 0) < 20 ? 'text-[#EF4444]' : 'text-[#F59E0B]'}`}>
+                      {stockData.summary.byColor?.remaining?.YELLOW || 0}
+                    </span>
+                  </div>
+                  {(stockData.summary.byColor?.received?.YELLOW || 0) > 0 && (
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#F59E0B] transition-all duration-700"
+                        style={{ width: `${Math.min(100, ((stockData.summary.byColor?.remaining?.YELLOW || 0) / (stockData.summary.byColor?.received?.YELLOW || 1)) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-xl">
-              <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Total Distributed</p>
-              <p className="text-xl font-extrabold text-[#2563EB]">{stockData.summary.totalDistributedKg} Packets</p>
+
+            {/* Orange Stock Card */}
+            <div className="relative overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-sm">
+              <div className="h-1.5 w-full bg-[#F97316]" />
+              <div className="p-5">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-orange-50 border border-orange-100">
+                    <span className="text-lg">🟠</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#111827]">Orange Stock</p>
+                    <p className="text-[10px] text-[#6B7280] font-medium uppercase tracking-wider">Children &gt; 3 Years</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-medium">Total Received</span>
+                    <span className="text-sm font-bold text-[#111827]">{stockData.summary.byColor?.received?.ORANGE || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-medium">Total Distributed</span>
+                    <span className="text-sm font-bold text-[#2563EB]">{stockData.summary.byColor?.distributed?.ORANGE || 0}</span>
+                  </div>
+                  <div className="h-px bg-[#F3F4F6]" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-semibold">Remaining</span>
+                    <span className={`text-lg font-extrabold ${(stockData.summary.byColor?.remaining?.ORANGE || 0) < 20 ? 'text-[#EF4444]' : 'text-[#F97316]'}`}>
+                      {stockData.summary.byColor?.remaining?.ORANGE || 0}
+                    </span>
+                  </div>
+                  {(stockData.summary.byColor?.received?.ORANGE || 0) > 0 && (
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#F97316] transition-all duration-700"
+                        style={{ width: `${Math.min(100, ((stockData.summary.byColor?.remaining?.ORANGE || 0) / (stockData.summary.byColor?.received?.ORANGE || 1)) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="text-center p-4 bg-amber-50 rounded-xl">
-              <p className="text-xs text-[#6B7280] font-semibold uppercase tracking-wider mb-1">Remaining</p>
-              <p className={`text-xl font-extrabold ${stockData.summary.remainingKg < 10 ? 'text-[#EF4444]' : 'text-[#F59E0B]'}`}>
-                {stockData.summary.remainingKg} Packets
-              </p>
+
+            {/* Red Stock Card */}
+            <div className="relative overflow-hidden bg-white border border-[#E5E7EB] rounded-2xl shadow-sm">
+              <div className="h-1.5 w-full bg-[#EF4444]" />
+              <div className="p-5">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-red-50 border border-red-100">
+                    <span className="text-lg">🔴</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#111827]">Red Stock</p>
+                    <p className="text-[10px] text-[#6B7280] font-medium uppercase tracking-wider">Children 6 Months – 3 Years</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-medium">Total Received</span>
+                    <span className="text-sm font-bold text-[#111827]">{stockData.summary.byColor?.received?.RED || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-medium">Total Distributed</span>
+                    <span className="text-sm font-bold text-[#2563EB]">{stockData.summary.byColor?.distributed?.RED || 0}</span>
+                  </div>
+                  <div className="h-px bg-[#F3F4F6]" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#6B7280] font-semibold">Remaining</span>
+                    <span className={`text-lg font-extrabold ${(stockData.summary.byColor?.remaining?.RED || 0) < 20 ? 'text-[#EF4444]' : 'text-[#10B981]'}`}>
+                      {stockData.summary.byColor?.remaining?.RED || 0}
+                    </span>
+                  </div>
+                  {(stockData.summary.byColor?.received?.RED || 0) > 0 && (
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#EF4444] transition-all duration-700"
+                        style={{ width: `${Math.min(100, ((stockData.summary.byColor?.remaining?.RED || 0) / (stockData.summary.byColor?.received?.RED || 1)) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* Add Stock Form */}
         {showStockForm && (
-          <div className="p-6 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-3 mb-4">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm mb-6">
+            <div className="p-6 bg-[#F9FAFB]">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-3 mb-4">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Packet Color *</label>
+                  <select
+                    value={stockForm.packetType}
+                    onChange={(e) => setStockForm({ ...stockForm, packetType: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
+                  >
+                    <option value="YELLOW">🟡 Yellow</option>
+                    <option value="ORANGE">🟠 Orange</option>
+                    <option value="RED">🔴 Red</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Quantity (Packets) *</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={stockForm.quantity}
+                    onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
+                    placeholder="e.g., 50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Batch Number</label>
+                  <input
+                    type="text"
+                    value={stockForm.batchNumber}
+                    onChange={(e) => setStockForm({ ...stockForm, batchNumber: e.target.value })}
+                    placeholder="e.g., BATCH-2026-06"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Supplier</label>
+                  <input
+                    type="text"
+                    value={stockForm.supplier}
+                    onChange={(e) => setStockForm({ ...stockForm, supplier: e.target.value })}
+                    placeholder="e.g., MOH Supply Unit"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Received Date</label>
+                  <input
+                    type="date"
+                    value={stockForm.receivedDate}
+                    onChange={(e) => setStockForm({ ...stockForm, receivedDate: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={stockForm.expiryDate}
+                    onChange={(e) => setStockForm({ ...stockForm, expiryDate: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Notes</label>
+                  <input
+                    type="text"
+                    value={stockForm.notes}
+                    onChange={(e) => setStockForm({ ...stockForm, notes: e.target.value })}
+                    placeholder="Optional notes"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
               </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Quantity (Packets) *</label>
-                <input
-                  type="number"
-                  step="1"
-                  min="1"
-                  value={stockForm.quantity}
-                  onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
-                  placeholder="e.g., 50"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                />
+              <div className="flex justify-end gap-3 mt-4">
+                <Button variant="outline" onClick={() => setShowStockForm(false)}>Cancel</Button>
+                <Button onClick={handleAddStock} isLoading={stockFormLoading}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Stock Record
+                </Button>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Batch Number</label>
-                <input
-                  type="text"
-                  value={stockForm.batchNumber}
-                  onChange={(e) => setStockForm({ ...stockForm, batchNumber: e.target.value })}
-                  placeholder="e.g., BATCH-2026-06"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Supplier</label>
-                <input
-                  type="text"
-                  value={stockForm.supplier}
-                  onChange={(e) => setStockForm({ ...stockForm, supplier: e.target.value })}
-                  placeholder="e.g., MOH Supply Unit"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Received Date</label>
-                <input
-                  type="date"
-                  value={stockForm.receivedDate}
-                  onChange={(e) => setStockForm({ ...stockForm, receivedDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Expiry Date</label>
-                <input
-                  type="date"
-                  value={stockForm.expiryDate}
-                  onChange={(e) => setStockForm({ ...stockForm, expiryDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Notes</label>
-                <input
-                  type="text"
-                  value={stockForm.notes}
-                  onChange={(e) => setStockForm({ ...stockForm, notes: e.target.value })}
-                  placeholder="Optional notes"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button variant="outline" onClick={() => setShowStockForm(false)}>Cancel</Button>
-              <Button onClick={handleAddStock} isLoading={stockFormLoading}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Stock Record
-              </Button>
             </div>
           </div>
         )}
 
-        {/* Stock Records List */}
-        <div className="divide-y divide-[#F9FAFB]">
+        {/* Stock Table */}
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-[#E5E7EB]">
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-50">
+              <BarChart3 className="h-4 w-4 text-[#10B981]" />
+            </div>
+            <span className="text-[#111827] font-semibold text-sm">Stock Records</span>
+          </div>
+
           {stockData?.records && stockData.records.length > 0 ? (
-            stockData.records.map((record, idx) => (
-              <div
-                key={record.id}
-                className="flex items-center justify-between px-6 py-3.5 hover:bg-[#F9FAFB] transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#10B981] font-bold text-sm shrink-0">
-                    {idx + 1}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#111827]">
-                      {Number(record.quantity)} Packets
-                      {record.batchNumber && (
-                        <span className="text-xs text-[#6B7280] font-normal ml-2">
-                          Batch: {record.batchNumber}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-[#6B7280]">
-                      Received: {new Date(record.receivedDate).toLocaleDateString()}
-                      {record.supplier && ` • ${record.supplier}`}
-                      {record.expiryDate && ` • Expires: ${new Date(record.expiryDate).toLocaleDateString()}`}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteStock(record.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                  title="Delete record"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                    <th className="px-6 py-3 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Packet Color</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Batch Number</th>
+                    <th className="px-6 py-3 text-right text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Received Qty</th>
+                    <th className="px-6 py-3 text-right text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Distributed Qty</th>
+                    <th className="px-6 py-3 text-right text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Remaining Qty</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Received Date</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Expiry Date</th>
+                    <th className="px-6 py-3 text-center text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F3F4F6]">
+                  {stockData.records.map((record) => {
+                    const received = Number(record.quantity);
+                    const remaining = Number(record.remainingQuantity);
+                    const distributed = received - remaining;
+                    const colorConfig: Record<string, { emoji: string; label: string; bg: string; text: string; border: string }> = {
+                      YELLOW: { emoji: '🟡', label: 'Yellow', bg: 'bg-amber-50', text: 'text-[#F59E0B]', border: 'border-amber-200' },
+                      ORANGE: { emoji: '🟠', label: 'Orange', bg: 'bg-orange-50', text: 'text-[#F97316]', border: 'border-orange-200' },
+                      RED:    { emoji: '🔴', label: 'Red',    bg: 'bg-red-50',    text: 'text-[#EF4444]', border: 'border-red-200' },
+                    };
+                    const cc = colorConfig[record.packetType] || colorConfig.YELLOW;
+
+                    return (
+                      <tr key={record.id} className="hover:bg-[#F9FAFB] transition-colors">
+                        <td className="px-6 py-3.5">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cc.bg} ${cc.text} border ${cc.border}`}>
+                            <span>{cc.emoji}</span>
+                            {cc.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3.5 text-sm text-[#111827] font-medium">
+                          {record.batchNumber || <span className="text-[#9CA3AF] italic">—</span>}
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm font-bold text-[#111827]">
+                          {received}
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm font-bold text-[#2563EB]">
+                          {distributed}
+                        </td>
+                        <td className="px-6 py-3.5 text-right">
+                          <span className={`text-sm font-bold ${remaining < 10 ? 'text-[#EF4444]' : 'text-[#10B981]'}`}>
+                            {remaining}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3.5 text-sm text-[#6B7280]">
+                          {new Date(record.receivedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </td>
+                        <td className="px-6 py-3.5 text-sm text-[#6B7280]">
+                          {record.expiryDate
+                            ? new Date(record.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                            : <span className="text-[#9CA3AF] italic">—</span>
+                          }
+                        </td>
+                        <td className="px-6 py-3.5 text-center">
+                          <button
+                            onClick={() => handleDeleteStock(record.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                            title="Delete record"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="py-10 text-center">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-3">

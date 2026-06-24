@@ -53,6 +53,12 @@ enum ThriposhaRecipientType {
   CHILD_UNDER_5
 }
 
+enum ThriposhaPacketType {
+  RED
+  ORANGE
+  YELLOW
+}
+
 // User Table - Base user authentication
 model User {
   id            String    @id @default(cuid())
@@ -96,6 +102,7 @@ model Mother {
   mohRegistrationNumber String?   // H 502 registry serial number (e.g., 2026/MAH/102)
   mohRegNumber          String    @default("")
   nicNumber             String    @default("")
+  height                Decimal?  @db.Decimal(5, 2) // in cm
   assignedMidwifeId     String?
   needsSpecialAttention Boolean   @default(false) // Midwife discretion: requires more frequent visits
   latitude              Decimal?  @db.Decimal(10, 7)
@@ -378,6 +385,7 @@ model ThriposhaDistribution {
   childId          String?
   midwifeId        String
   recipientType    ThriposhaRecipientType
+  packetType       ThriposhaPacketType     @default(YELLOW)
   quantity         Decimal                 @db.Decimal(5, 2) // in kg
   distributionDate DateTime                @default(now())
   month            Int                     // 1-12, the calendar month this covers
@@ -400,7 +408,9 @@ model ThriposhaDistribution {
 model ThriposhaStock {
   id            String    @id @default(cuid())
   receivedDate  DateTime  @default(now())
-  quantity      Decimal   @db.Decimal(8, 2) // in kg
+  quantity          Decimal   @db.Decimal(8, 2) // in kg
+  remainingQuantity Decimal   @db.Decimal(8, 2) @default(0)
+  packetType        ThriposhaPacketType @default(YELLOW)
   batchNumber   String?
   supplier      String?
   expiryDate    DateTime?
