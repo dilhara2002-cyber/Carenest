@@ -35,6 +35,7 @@ interface Mother {
   } | null;
   pregnancies?: {
     id: string;
+    status?: string;
     lastMenstrualPeriod?: string | null;
     expectedDeliveryDate?: string | null;
     highRisk?: boolean;
@@ -1086,7 +1087,7 @@ export default function MothersPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Pregnancies</h3>
                 {(() => {
-                  const activePreg = selectedMother.pregnancies?.find((p: { status: string }) => p.status === 'ACTIVE');
+                  const activePreg = selectedMother.pregnancies?.find((p: { status?: string }) => p.status === 'ACTIVE');
                   const progress = activePreg ? getPregnancyProgress(activePreg.lastMenstrualPeriod) : null;
                   if (activePreg && progress) {
                     return (

@@ -189,17 +189,17 @@ export default function ReportsPage() {
                     >
                       <div>
                         <p className="text-sm font-medium text-gray-900">{docType.name}</p>
-                        {docType._count && docType._count.documents > 0 && (
+                        {(docType._count?.documents ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            {docType._count.documents} document(s)
+                            {docType._count?.documents} document(s)
                           </p>
                         )}
                       </div>
                       <button
                         onClick={() => handleDeleteDocumentType(docType.id)}
-                        disabled={Boolean(docType._count && docType._count.documents > 0)}
+                        disabled={(docType._count?.documents ?? 0) > 0}
                         className="p-2 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={docType._count && docType._count.documents > 0 ? 'Cannot delete - has documents' : 'Delete type'}
+                        title={(docType._count?.documents ?? 0) > 0 ? 'Cannot delete - has documents' : 'Delete type'}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

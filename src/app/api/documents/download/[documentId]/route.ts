@@ -55,7 +55,11 @@ export async function GET(
     // Content-Disposition "inline" allows opening natively, "attachment" forces download
     const disposition = req.nextUrl.searchParams.get('download') === 'true' ? 'attachment' : 'inline';
     
+<<<<<<< HEAD
     return new NextResponse(Buffer.from(document.fileData), {
+=======
+    return new NextResponse(Buffer.from(document.fileData) as unknown as BodyInit, {
+>>>>>>> 1f53194 (feat: integrate Thriposha management and resolve type errors)
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
