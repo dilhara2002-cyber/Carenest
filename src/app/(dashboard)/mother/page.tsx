@@ -15,6 +15,20 @@ interface DashboardData {
     lastMenstrualPeriod?: string | null;
     expectedDeliveryDate?: string | null;
     highRisk?: boolean;
+    currentWeek?: number | null;
+    progress?: {
+      weeks: number;
+      days: number;
+      percentage: number;
+      percentComplete: number;
+      trimester: number;
+      trimesterLabel: string;
+      daysUntilDue: number;
+      daysRemaining: number;
+      month: number;
+      isOverdue: boolean;
+      expectedDeliveryDate: string;
+    } | null;
   } | null;
   childrenCount: number;
   upcomingVisits: number;

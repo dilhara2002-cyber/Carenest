@@ -105,6 +105,7 @@ export async function PATCH(
       mohRegistrationNumber,
       assignedMidwifeId,
       isActive,
+      needsSpecialAttention,
     } = body;
 
     // Get current mother data
@@ -171,6 +172,7 @@ export async function PATCH(
         ...(allergies !== undefined && { allergies }),
         ...(mohRegistrationNumber !== undefined && { mohRegistrationNumber }),
         ...(assignedMidwifeId !== undefined && { assignedMidwifeId: assignedMidwifeId || null }),
+        ...(needsSpecialAttention !== undefined && { needsSpecialAttention: Boolean(needsSpecialAttention) }),
       },
       include: {
         user: {
@@ -203,6 +205,9 @@ export async function PATCH(
     }
     if (nextIsActive !== undefined && nextIsActive !== currentMother.user.isActive) {
       changes.push(nextIsActive ? 'Account activated' : 'Account deactivated');
+    }
+    if (needsSpecialAttention !== undefined && needsSpecialAttention !== currentMother.needsSpecialAttention) {
+      changes.push(needsSpecialAttention ? 'Marked for special attention' : 'Removed special attention');
     }
 
     if (changes.length > 0) {

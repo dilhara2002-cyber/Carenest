@@ -31,6 +31,7 @@ export interface MotherWithRelations {
   emergencyName: string | null;
   medicalHistory: string | null;
   allergies: string | null;
+  needsSpecialAttention: boolean;
   createdAt: Date;
   user: {
     id: string;
@@ -91,6 +92,13 @@ export interface VisitData {
   fetalHeartRate: number | null;
   symptoms: string | null;
   recommendations: string | null;
+  postnatalVisitNumber?: number | null;
+  postnatalWindowStart?: Date | string | null;
+  postnatalWindowEnd?: Date | string | null;
+  isPostnatalMandatory?: boolean;
+  isMohVisitRequired?: boolean;
+  childId?: string | null;
+  child?: ChildData | null;
   mother?: {
     user: {
       name: string;

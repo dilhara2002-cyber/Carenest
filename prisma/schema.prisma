@@ -91,6 +91,7 @@ model Mother {
   mohRegNumber          String    @default("")
   nicNumber             String    @default("")
   assignedMidwifeId     String?
+  needsSpecialAttention Boolean   @default(false) // Midwife discretion: requires more frequent visits
   latitude              Decimal?  @db.Decimal(10, 7)
   longitude             Decimal?  @db.Decimal(10, 7)
   locationUpdatedAt     DateTime?
@@ -165,6 +166,8 @@ model Child {
   birthPlace    String?
   healthNotes   String?
   image         String?
+  isPreterm           Boolean   @default(false)
+  gestationalAgeWeeks Int?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -173,6 +176,7 @@ model Child {
   mother        Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
   growthRecords GrowthRecord[]
   vaccinations  Vaccination[]
+  visits        Visit[]   // Postnatal visits linked to this child
 
   @@map("children")
 }
@@ -187,6 +191,14 @@ model GrowthRecord {
   headCircumference Decimal? @db.Decimal(5, 2) // in cm
   bmi         Decimal?  @db.Decimal(5, 2)
   notes       String?
+  ageMonths           Int?
+  correctedAgeMonths  Int?
+  zScoreWeight        Decimal?  @db.Decimal(5, 2)
+  zScoreHeight        Decimal?  @db.Decimal(5, 2)
+  zScoreBmi           Decimal?  @db.Decimal(5, 2)
+  weightStatus        String?
+  heightStatus        String?
+  bmiStatus           String?
 
   createdAt   DateTime  @default(now())
 
@@ -212,12 +224,21 @@ model Visit {
   symptoms    String?
   recommendations String?
 
+  // Postnatal visit scheduling fields
+  postnatalVisitNumber   Int?          // 1, 2, 3, or 4 for mandatory postnatal visits
+  postnatalWindowStart   DateTime?     // Earliest date for this postnatal visit
+  postnatalWindowEnd     DateTime?     // Latest date for this postnatal visit
+  isPostnatalMandatory   Boolean       @default(false)
+  isMohVisitRequired     Boolean       @default(false)  // True for 3rd postnatal visit
+  childId                String?       // Link postnatal visits to specific child
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   // Relations
   mother      Mother      @relation(fields: [motherId], references: [id], onDelete: Cascade)
   midwife     Midwife     @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+  child       Child?      @relation(fields: [childId], references: [id])
 
   @@map("visits")
 }

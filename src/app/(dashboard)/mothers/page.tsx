@@ -17,6 +17,7 @@ interface Mother {
   allergies: string | null;
   mohRegistrationNumber: string | null;
   assignedMidwifeId: string | null;
+  needsSpecialAttention: boolean;
   latitude?: number | string | null;
   longitude?: number | string | null;
   locationUpdatedAt?: string | null;
@@ -37,6 +38,7 @@ interface Mother {
     lastMenstrualPeriod?: string | null;
     expectedDeliveryDate?: string | null;
     highRisk?: boolean;
+    status: string;
   }[];
   children?: {
     id: string;
@@ -93,6 +95,7 @@ export default function MothersPage() {
     allergies: '',
     mohRegistrationNumber: '',
     assignedMidwifeId: '',
+    needsSpecialAttention: false,
   });
 
   const fetchMothers = async () => {
@@ -194,6 +197,7 @@ export default function MothersPage() {
           medicalHistory: formData.medicalHistory || null,
           allergies: formData.allergies || null,
           mohRegistrationNumber: formData.mohRegistrationNumber || null,
+          needsSpecialAttention: formData.needsSpecialAttention,
         }),
       });
 
@@ -305,6 +309,30 @@ export default function MothersPage() {
     }
   };
 
+  const handleToggleSpecialAttention = async (mother: Mother) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/mothers/${mother.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ needsSpecialAttention: !mother.needsSpecialAttention }),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setMothers(prev => prev.map(m => m.id === mother.id ? { ...m, needsSpecialAttention: updated.data.needsSpecialAttention } : m));
+        setSelectedMother(prev => prev && prev.id === mother.id ? { ...prev, needsSpecialAttention: updated.data.needsSpecialAttention } : prev);
+      } else {
+        alert('Failed to update care plan');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to update care plan');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!selectedMother) return;
     
@@ -346,6 +374,7 @@ export default function MothersPage() {
       allergies: '',
       mohRegistrationNumber: '',
       assignedMidwifeId: '',
+      needsSpecialAttention: false,
     });
   };
 
@@ -366,6 +395,7 @@ export default function MothersPage() {
       allergies: mother.allergies || '',
       mohRegistrationNumber: mother.mohRegistrationNumber || '',
       assignedMidwifeId: mother.assignedMidwifeId || '',
+      needsSpecialAttention: mother.needsSpecialAttention || false,
     });
     setShowEditModal(true);
   };
@@ -414,6 +444,7 @@ export default function MothersPage() {
               <TableHead>Phone</TableHead>
               <TableHead>Blood Group</TableHead>
               <TableHead>Assigned Midwife</TableHead>
+              <TableHead>Care Plan</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -434,6 +465,13 @@ export default function MothersPage() {
                     <Badge variant="success">{mother.assignedMidwife.user.name}</Badge>
                   ) : (
                     <Badge variant="warning">Not Assigned</Badge>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {mother.needsSpecialAttention ? (
+                    <Badge variant="warning">Special Attention</Badge>
+                  ) : (
+                    <Badge variant="default">Normal Care</Badge>
                   )}
                 </TableCell>
                 <TableCell>
@@ -830,6 +868,20 @@ export default function MothersPage() {
             onChange={(e) => setFormData({ ...formData, mohRegistrationNumber: e.target.value })}
             placeholder="e.g., 2026/MAH/102"
           />
+          {['ADMIN', 'MIDWIFE'].includes(session?.user?.role || '') && (
+            <div className="flex items-center gap-2 py-2">
+              <input
+                id="needsSpecialAttentionEdit"
+                type="checkbox"
+                checked={formData.needsSpecialAttention || false}
+                onChange={(e) => setFormData({ ...formData, needsSpecialAttention: e.target.checked })}
+                className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+              />
+              <label htmlFor="needsSpecialAttentionEdit" className="text-sm font-medium text-gray-700">
+                Requires Special Attention (Midwife Discretion)
+              </label>
+            </div>
+          )}
           <div className="flex justify-end gap-3 mt-6">
             <Button type="button" variant="outline" onClick={() => setShowEditModal(false)}>
               Cancel
@@ -894,14 +946,27 @@ export default function MothersPage() {
       <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title="Mother Details" size="lg">
         {selectedMother && (
           <div className="space-y-6">
-            {/* Header Section with MOH Registration Number */}
-            {selectedMother.mohRegistrationNumber && (
-              <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-200 p-4 rounded-lg">
-                <p className="text-sm text-teal-600 font-semibold">MOH Registration Number</p>
-                <p className="text-xl font-bold text-teal-900">{selectedMother.mohRegistrationNumber}</p>
-                <p className="text-xs text-teal-700 mt-1">H 502 Registry Serial Number</p>
+            {/* Header Section with MOH Registration Number and Care Plan */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {selectedMother.mohRegistrationNumber && (
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 p-4 rounded-lg">
+                  <p className="text-sm text-teal-600 font-semibold">MOH Registration Number</p>
+                  <p className="text-xl font-bold text-teal-900">{selectedMother.mohRegistrationNumber}</p>
+                  <p className="text-xs text-teal-700 mt-1">H 502 Registry Serial Number</p>
+                </div>
+              )}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-lg">
+                <p className="text-sm text-amber-600 font-semibold">Prenatal Care Plan</p>
+                <p className="text-xl font-bold text-amber-900">
+                  {selectedMother.needsSpecialAttention ? 'Special Attention' : 'Normal Care'}
+                </p>
+                <p className="text-xs text-amber-700 mt-1">
+                  {selectedMother.needsSpecialAttention 
+                    ? 'Requires midwife discretion visit schedules' 
+                    : 'Standard monthly care visits'}
+                </p>
               </div>
-            )}
+            </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -1070,10 +1135,19 @@ export default function MothersPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 border-t pt-4">
               <Button variant="outline" onClick={() => setShowViewModal(false)}>
                 Close
               </Button>
+              {['ADMIN', 'MIDWIFE'].includes(session?.user?.role || '') && (
+                <Button 
+                  variant={selectedMother.needsSpecialAttention ? 'outline' : 'secondary'} 
+                  onClick={() => handleToggleSpecialAttention(selectedMother)}
+                  disabled={actionLoading}
+                >
+                  {selectedMother.needsSpecialAttention ? 'Switch to Normal Care' : 'Mark Special Attention'}
+                </Button>
+              )}
               <Button onClick={() => {
                 setShowViewModal(false);
                 openEditModal(selectedMother);
