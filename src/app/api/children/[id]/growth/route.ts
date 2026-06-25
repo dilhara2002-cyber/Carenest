@@ -1,6 +1,7 @@
 // src/app/api/children/[id]/growth/route.ts
 // GET  /api/children/[id]/growth  — fetch chronological growth records for chart
 // POST /api/children/[id]/growth  — save a new midwife clinic visit record
+// DELETE /api/children/[id]/growth — delete a growth record
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -246,6 +247,102 @@ export async function POST(
     console.error('POST growth record error:', error);
     return NextResponse.json(
       { error: 'Failed to save growth record' },
+      { status: 500 },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE — delete a growth record (Admin/Midwife only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Only MIDWIFE or ADMIN can delete growth records
+    if (!['MIDWIFE', 'ADMIN'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Only midwives and admins can delete growth records' },
+        { status: 403 },
+      );
+    }
+
+    const { id: childId } = await params;
+
+    const { searchParams } = new URL(req.url);
+    const recordId = searchParams.get('recordId');
+
+    if (!recordId) {
+      return NextResponse.json(
+        { error: 'Growth record ID (recordId) is required' },
+        { status: 400 },
+      );
+    }
+
+    // Verify the record exists and belongs to this child
+    const existingRecord = await prisma.growthRecord.findFirst({
+      where: {
+        id: recordId,
+        childId,
+      },
+    });
+
+    if (!existingRecord) {
+      return NextResponse.json(
+        { error: 'Growth record not found for this child' },
+        { status: 404 },
+      );
+    }
+
+    // For MIDWIFE, verify they have permission to manage this child
+    if (session.user.role === 'MIDWIFE') {
+      const child = await prisma.child.findUnique({
+        where: { id: childId },
+        include: { mother: true },
+      });
+
+      if (
+        !child ||
+        !session.user.midwifeId ||
+        child.mother.assignedMidwifeId !== session.user.midwifeId
+      ) {
+        return NextResponse.json(
+          { error: 'Forbidden - Mother is not assigned to you' },
+          { status: 403 },
+        );
+      }
+    }
+
+    await prisma.growthRecord.delete({
+      where: { id: recordId },
+    });
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: 'GROWTH_RECORD_DELETED',
+        entity: 'GrowthRecord',
+        entityId: recordId,
+        details: `Growth record deleted for child ${childId}`,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Growth record deleted successfully',
+    });
+  } catch (error) {
+    console.error('DELETE growth record error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete growth record' },
       { status: 500 },
     );
   }

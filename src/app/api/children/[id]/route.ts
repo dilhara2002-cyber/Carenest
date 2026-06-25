@@ -93,8 +93,25 @@ export async function POST(req: NextRequest) {
       gestationalAgeWeeks,
     } = body;
 
+<<<<<<< HEAD
     if (!motherId) {
       return NextResponse.json({ error: 'Mother ID is required' }, { status: 400 });
+=======
+    // Build update data
+    const updateData: {
+      name?: string;
+      gender?: 'MALE' | 'FEMALE';
+      birthDate?: Date;
+      birthWeight?: number | null;
+      birthHeight?: number | null;
+      birthTime?: string | null;
+      birthPlace?: string | null;
+      healthNotes?: string | null;
+    } = {};
+
+    if (name !== undefined) {
+      updateData.name = name;
+>>>>>>> 1f53194 (feat: integrate Thriposha management and resolve type errors)
     }
 
     // For midwife, verify the mother is assigned to them

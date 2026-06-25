@@ -8,6 +8,8 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // Clear existing data
+  await prisma.thriposhaDistribution.deleteMany();
+  await prisma.thriposhaStock.deleteMany();
   await prisma.chatMessage.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.aICareRecord.deleteMany();
@@ -298,6 +300,45 @@ async function main() {
     },
   });
   console.log('✅ Created AI care records');
+
+  // Create Thriposha Stock records
+  await prisma.thriposhaStock.createMany({
+    data: [
+      { quantity: 50, remainingQuantity: 50, packetType: 'RED', batchNumber: 'RED-BATCH-01', supplier: 'MOH Main Office' },
+      { quantity: 100, remainingQuantity: 98, packetType: 'ORANGE', batchNumber: 'ORG-BATCH-01', supplier: 'MOH Main Office' },
+      { quantity: 200, remainingQuantity: 198, packetType: 'YELLOW', batchNumber: 'YEL-BATCH-01', supplier: 'MOH Main Office' },
+    ],
+  });
+  console.log('✅ Created Thriposha stock entries');
+
+  // Create Thriposha Distribution records
+  await prisma.thriposhaDistribution.createMany({
+    data: [
+      {
+        motherId: mother1.mother!.id,
+        midwifeId: midwife1.midwife!.id,
+        recipientType: 'PREGNANT_MOTHER',
+        packetType: 'YELLOW',
+        quantity: 2,
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+        batchNumber: 'YEL-BATCH-01',
+        notes: 'Monthly distribution',
+      },
+      {
+        childId: child1.id,
+        midwifeId: midwife2.midwife!.id,
+        recipientType: 'CHILD_UNDER_5',
+        packetType: 'ORANGE',
+        quantity: 2,
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+        batchNumber: 'ORG-BATCH-01',
+        notes: 'Distributed for underweight child',
+      }
+    ],
+  });
+  console.log('✅ Created Thriposha distribution entries');
 
   console.log('');
   console.log('🎉 Database seeding completed successfully!');

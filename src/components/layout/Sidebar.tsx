@@ -22,6 +22,7 @@ import {
   Brain,
   ChevronDown,
   UserPlus,
+  Package,
 } from 'lucide-react';
 
 interface NavItem {
@@ -49,7 +50,9 @@ const navItems: NavItem[] = [
   { label: 'AI Care', href: '/ai-care', icon: Brain, roles: ['MOTHER'] },
   { label: 'Chat', href: '/chat', icon: MessageSquare, roles: ['MOTHER', 'MIDWIFE'] },
   { label: 'Notifications', href: '/notifications', icon: Bell, roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },
+  { label: 'Thriposha', href: '/thriposha', icon: Package, roles: ['MIDWIFE'] },
   { label: 'Reports', href: '/reports', icon: FileText, roles: ['MIDWIFE', 'ADMIN'] },
+  { label: 'Thriposha Reports', href: '/thriposha-reports', icon: Package, roles: ['ADMIN'] },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },
 ];
 
