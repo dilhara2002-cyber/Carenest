@@ -12,6 +12,7 @@ import { formatDate } from '@/lib/utils';
 interface Distribution {
   id: string;
   recipientType: string;
+  packetType: 'RED' | 'ORANGE' | 'YELLOW';
   quantity: number;
   distributionDate: string;
   month: number;
@@ -46,6 +47,18 @@ const RECIPIENT_BADGE_COLORS: Record<string, string> = {
   CHILD_UNDER_5: 'warning',
 };
 
+const PACKET_COLOR_CONFIG: Record<string, { emoji: string; label: string; bg: string; text: string; border: string; barColor: string }> = {
+  YELLOW: { emoji: '🟡', label: 'Yellow', bg: 'bg-amber-50', text: 'text-[#F59E0B]', border: 'border-amber-200', barColor: 'bg-[#F59E0B]' },
+  ORANGE: { emoji: '🟠', label: 'Orange', bg: 'bg-orange-50', text: 'text-[#F97316]', border: 'border-orange-200', barColor: 'bg-[#F97316]' },
+  RED:    { emoji: '🔴', label: 'Red',    bg: 'bg-red-50',    text: 'text-[#EF4444]', border: 'border-red-200', barColor: 'bg-[#EF4444]' },
+};
+
+const PACKET_COLOR_HINT: Record<string, string> = {
+  YELLOW: 'For pregnant & lactating mothers',
+  ORANGE: 'For children > 3 years',
+  RED: 'For children 6 months – 3 years',
+};
+
 export default function ThriposhaPage() {
   const { data: session } = useSession();
   const [distributions, setDistributions] = useState<Distribution[]>([]);
@@ -63,6 +76,7 @@ export default function ThriposhaPage() {
   const [success, setSuccess] = useState('');
   const [form, setForm] = useState({
     recipientType: 'PREGNANT_MOTHER',
+    packetType: 'YELLOW' as string,
     motherId: '',
     childId: '',
     quantity: '',
@@ -70,6 +84,8 @@ export default function ThriposhaPage() {
     batchNumber: '',
     notes: '',
   });
+  const [eligibilityLoading, setEligibilityLoading] = useState(false);
+  const [eligibilityHint, setEligibilityHint] = useState('');
 
   useEffect(() => {
     fetchDistributions();
@@ -108,6 +124,52 @@ export default function ThriposhaPage() {
     }
   };
 
+  // Auto-detect packet color when recipient type or child changes
+  const fetchEligibility = async (childId: string) => {
+    if (!childId) return;
+    setEligibilityLoading(true);
+    setEligibilityHint('');
+    try {
+      const res = await fetch(`/api/thriposha/eligibility?childId=${childId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.data?.packetType) {
+          setForm(prev => ({ ...prev, packetType: data.data.packetType }));
+          setEligibilityHint(
+            data.data.eligible
+              ? `✅ Eligible — ${data.data.reasons?.join(', ')}`
+              : `⚠️ Not eligible — ${data.data.reasons?.join(', ')}`
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch eligibility:', err);
+    } finally {
+      setEligibilityLoading(false);
+    }
+  };
+
+  // Auto-set packet color when recipient type changes
+  const handleRecipientTypeChange = (newType: string) => {
+    let autoColor = 'YELLOW';
+    if (newType === 'PREGNANT_MOTHER' || newType === 'LACTATING_MOTHER') {
+      autoColor = 'YELLOW';
+    }
+    // For children, the color will be auto-detected when child is selected
+    setForm(prev => ({ ...prev, recipientType: newType, packetType: autoColor, childId: '' }));
+    setEligibilityHint('');
+  };
+
+  // Auto-detect when child is selected
+  const handleChildSelect = (childId: string) => {
+    setForm(prev => ({ ...prev, childId }));
+    if (childId) {
+      fetchEligibility(childId);
+    } else {
+      setEligibilityHint('');
+    }
+  };
+
   const handleSubmit = async () => {
     const qty = parseInt(form.quantity, 10);
     if (!form.quantity || isNaN(qty) || qty <= 0 || Number(form.quantity) !== qty) {
@@ -132,6 +194,7 @@ export default function ThriposhaPage() {
     try {
       const body: Record<string, unknown> = {
         recipientType: form.recipientType,
+        packetType: form.packetType,
         quantity: form.quantity,
         distributionDate: form.distributionDate,
         batchNumber: form.batchNumber || undefined,
@@ -156,6 +219,7 @@ export default function ThriposhaPage() {
         setSuccess('Distribution recorded successfully!');
         setForm({
           recipientType: 'PREGNANT_MOTHER',
+          packetType: 'YELLOW',
           motherId: '',
           childId: '',
           quantity: '',
@@ -164,6 +228,7 @@ export default function ThriposhaPage() {
           notes: '',
         });
         setShowForm(false);
+        setEligibilityHint('');
         await fetchDistributions();
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -188,6 +253,9 @@ export default function ThriposhaPage() {
 
   // Summary for the current view
   const totalKg = distributions.reduce((sum, d) => sum + Number(d.quantity), 0);
+  const yellowCount = distributions.filter(d => d.packetType === 'YELLOW').reduce((sum, d) => sum + Number(d.quantity), 0);
+  const orangeCount = distributions.filter(d => d.packetType === 'ORANGE').reduce((sum, d) => sum + Number(d.quantity), 0);
+  const redCount = distributions.filter(d => d.packetType === 'RED').reduce((sum, d) => sum + Number(d.quantity), 0);
 
   return (
     <div className="space-y-6 bg-[#F9FAFB] min-h-screen">
@@ -290,6 +358,28 @@ export default function ThriposhaPage() {
         </div>
       </div>
 
+      {/* ── Color-Based Distribution Breakdown ── */}
+      <div className="grid grid-cols-3 gap-3">
+        {([
+          { color: 'YELLOW' as const, count: yellowCount, emoji: '🟡', label: 'Yellow', accent: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-100' },
+          { color: 'ORANGE' as const, count: orangeCount, emoji: '🟠', label: 'Orange', accent: '#F97316', bg: 'bg-orange-50', border: 'border-orange-100' },
+          { color: 'RED' as const, count: redCount, emoji: '🔴', label: 'Red', accent: '#EF4444', bg: 'bg-red-50', border: 'border-red-100' },
+        ]).map((item) => (
+          <div key={item.color} className={`bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm`}>
+            <div className="h-1 w-full" style={{ backgroundColor: item.accent }} />
+            <div className="p-3 flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-lg ${item.bg} border ${item.border} flex items-center justify-center`}>
+                <span className="text-base">{item.emoji}</span>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#6B7280] font-medium uppercase tracking-wider">{item.label} Packets</p>
+                <p className="text-lg font-extrabold" style={{ color: item.accent }}>{item.count}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* ── Distribution Form ── */}
       {showForm && (
         <div className="animate-fade-in-up bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
@@ -313,7 +403,7 @@ export default function ThriposhaPage() {
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Type *</label>
                 <select
                   value={form.recipientType}
-                  onChange={(e) => setForm({ ...form, recipientType: e.target.value, childId: '' })}
+                  onChange={(e) => handleRecipientTypeChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
                 >
                   <option value="PREGNANT_MOTHER">Pregnant Mother</option>
@@ -343,7 +433,7 @@ export default function ThriposhaPage() {
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Child *</label>
                   <select
                     value={form.childId}
-                    onChange={(e) => setForm({ ...form, childId: e.target.value })}
+                    onChange={(e) => handleChildSelect(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm bg-white"
                   >
                     <option value="">Select child...</option>
@@ -356,8 +446,46 @@ export default function ThriposhaPage() {
                   {form.motherId && availableChildren.length === 0 && (
                     <p className="text-xs text-amber-600 mt-1">No children found for this mother</p>
                   )}
+                  {eligibilityLoading && (
+                    <p className="text-xs text-blue-500 mt-1 flex items-center gap-1">
+                      <span className="animate-spin inline-block h-3 w-3 border border-blue-400 border-t-transparent rounded-full"></span>
+                      Checking eligibility...
+                    </p>
+                  )}
+                  {eligibilityHint && !eligibilityLoading && (
+                    <p className="text-xs text-gray-600 mt-1">{eligibilityHint}</p>
+                  )}
                 </div>
               )}
+
+              {/* Packet Color Selector */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Packet Color *</label>
+                <div className="flex gap-2">
+                  {(['YELLOW', 'ORANGE', 'RED'] as const).map((color) => {
+                    const cc = PACKET_COLOR_CONFIG[color];
+                    const isSelected = form.packetType === color;
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setForm({ ...form, packetType: color })}
+                        className={`flex-1 flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border-2 transition-all duration-200 ${
+                          isSelected
+                            ? `${cc.bg} ${cc.border} ${cc.text} shadow-sm scale-[1.02]`
+                            : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="text-lg">{cc.emoji}</span>
+                        <span className={`text-xs font-bold ${isSelected ? cc.text : 'text-gray-500'}`}>{cc.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1.5">
+                  {PACKET_COLOR_HINT[form.packetType]}
+                </p>
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Quantity (Packets) *</label>
@@ -468,6 +596,7 @@ export default function ThriposhaPage() {
               ];
               const style = avatarStyles[idx % avatarStyles.length];
               const recipientName = dist.child?.name || dist.mother?.user?.name || 'Unknown';
+              const pktColor = PACKET_COLOR_CONFIG[dist.packetType] || PACKET_COLOR_CONFIG.YELLOW;
 
               return (
                 <div
@@ -488,7 +617,12 @@ export default function ThriposhaPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
+                    {/* Packet Color Badge */}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${pktColor.bg} ${pktColor.text} border ${pktColor.border}`}>
+                      <span>{pktColor.emoji}</span>
+                      {pktColor.label}
+                    </span>
                     <Badge
                       variant={RECIPIENT_BADGE_COLORS[dist.recipientType] as 'info' | 'success' | 'warning' || 'info'}
                       className="font-semibold rounded-full px-2.5 py-0.5 text-[10px]"
