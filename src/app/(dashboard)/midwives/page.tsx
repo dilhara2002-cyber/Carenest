@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -39,6 +40,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -588,6 +590,92 @@ export default function MidwivesPage() {
               <p className="text-sm text-gray-400">Click "Register Midwife" to add one</p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* High-Risk Alerts */}
+      <Card className="border-red-100 bg-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-slate-800">
+              <AlertCircle className="h-6 w-6 text-red-600 fill-red-600 text-white" />
+              <span className="font-bold text-lg">High-Risk Alerts</span>
+            </span>
+            <Link href="/pregnancies" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+              View All
+            </Link>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Elena Adams Alert */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-red-50/30 border border-red-100/80 rounded-2xl gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-red-200">
+                <img
+                  src="/avatars/elena.png"
+                  alt="Elena Adams"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800">Elena Adams</span>
+                  <span className="text-xs text-slate-400 font-medium">32 weeks</span>
+                </div>
+                <p className="text-sm font-bold text-red-600 mt-1">Elevated Blood Pressure (145/92)</p>
+                <p className="text-xs text-slate-500 mt-0.5">Recorded 2 hours ago via home monitor</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end md:self-center">
+              <button 
+                onClick={() => window.open('tel:+94771234567')}
+                className="px-5 py-2 border border-slate-200 rounded-full text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Call
+              </button>
+              <Link
+                href="/pregnancies"
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-semibold shadow-sm transition-colors"
+              >
+                Review Record
+              </Link>
+            </div>
+          </div>
+
+          {/* Maria Wong Alert */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-amber-50/30 border border-amber-100/80 rounded-2xl gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-amber-200">
+                <img
+                  src="/avatars/maria.png"
+                  alt="Maria Wong"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800">Maria Wong</span>
+                  <span className="text-xs text-slate-400 font-medium">28 weeks</span>
+                </div>
+                <p className="text-sm font-bold text-amber-600 mt-1">Missed Gestational Diabetes Screening</p>
+                <p className="text-xs text-slate-500 mt-0.5">Overdue by 3 days</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end md:self-center">
+              <Link 
+                href="/chat"
+                className="px-5 py-2 border border-slate-200 rounded-full text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Message
+              </Link>
+              <Link
+                href="/visits"
+                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full text-sm font-semibold shadow-sm transition-colors"
+              >
+                Reschedule
+              </Link>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
