@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: mother.userId,
           title: 'Pregnancy Registered',
-          message: edd 
+          message: edd
             ? `Your pregnancy has been registered. Expected delivery: ${edd.toLocaleDateString()}`
             : 'Your pregnancy has been registered.',
           type: 'INFO',
@@ -209,7 +209,7 @@ export async function PUT(req: NextRequest) {
 
     if (updateData.lastMenstrualPeriod) {
       updateData.lastMenstrualPeriod = new Date(updateData.lastMenstrualPeriod);
-      
+
       // Recalculate current week
       const lmp = new Date(updateData.lastMenstrualPeriod);
       const today = new Date();

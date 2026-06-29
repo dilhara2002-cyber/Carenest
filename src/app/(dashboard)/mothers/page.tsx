@@ -168,7 +168,7 @@ export default function MothersPage() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMother) return;
-    
+
     setActionLoading(true);
     try {
       const res = await fetch(`/api/mothers/${selectedMother.id}`, {
@@ -208,7 +208,7 @@ export default function MothersPage() {
   const handleAssignMidwife = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMother) return;
-    
+
     setActionLoading(true);
     try {
       const res = await fetch(`/api/mothers/${selectedMother.id}`, {
@@ -268,10 +268,10 @@ export default function MothersPage() {
 
   const handleToggleActive = async (mother: Mother) => {
     const newStatus = !mother.user.isActive;
-    const confirmMsg = newStatus 
-      ? `Activate account for ${mother.user.name}?` 
+    const confirmMsg = newStatus
+      ? `Activate account for ${mother.user.name}?`
       : `Deactivate account for ${mother.user.name}? They will not be able to login.`;
-    
+
     if (!confirm(confirmMsg)) return;
 
     setActionLoading(true);
@@ -298,7 +298,7 @@ export default function MothersPage() {
 
   const handleDelete = async () => {
     if (!selectedMother) return;
-    
+
     setActionLoading(true);
     try {
       const res = await fetch(`/api/mothers/${selectedMother.id}`, {
@@ -700,9 +700,9 @@ export default function MothersPage() {
               label="Assign Midwife"
               value={formData.assignedMidwifeId}
               onChange={(e) => setFormData({ ...formData, assignedMidwifeId: e.target.value })}
-              options={midwives.map(mw => ({ 
-                value: mw.id, 
-                label: `${mw.user.name} (${mw._count?.assignedMothers || 0} mothers)` 
+              options={midwives.map(mw => ({
+                value: mw.id,
+                label: `${mw.user.name} (${mw._count?.assignedMothers || 0} mothers)`
               }))}
               placeholder="Select midwife (optional)"
             />
@@ -840,18 +840,18 @@ export default function MothersPage() {
             <p className="font-semibold text-gray-900">{selectedMother?.user.name}</p>
             <p className="text-sm text-gray-500">{selectedMother?.user.email}</p>
           </div>
-          
+
           <Select
             label="Select Midwife"
             value={formData.assignedMidwifeId}
             onChange={(e) => setFormData({ ...formData, assignedMidwifeId: e.target.value })}
-            options={midwives.map(mw => ({ 
-              value: mw.id, 
-              label: `${mw.user.name} - ${mw._count?.assignedMothers || 0} assigned mothers` 
+            options={midwives.map(mw => ({
+              value: mw.id,
+              label: `${mw.user.name} - ${mw._count?.assignedMothers || 0} assigned mothers`
             }))}
             placeholder="Select a midwife..."
           />
-          
+
           {selectedMother?.assignedMidwife && (
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-sm text-blue-800">
@@ -865,8 +865,8 @@ export default function MothersPage() {
               Cancel
             </Button>
             {selectedMother?.assignedMidwife && (
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="outline"
                 onClick={handleRemoveMidwifeAssignment}
                 disabled={actionLoading}
@@ -926,7 +926,7 @@ export default function MothersPage() {
                   </div>
                 </dl>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Medical & Emergency</h3>
                 <dl className="space-y-2">
@@ -1084,7 +1084,7 @@ export default function MothersPage() {
             <p className="font-semibold">Delete Mother Account</p>
           </div>
           <p className="text-gray-600">
-            Are you sure you want to delete <strong>{selectedMother?.user.name}</strong>? 
+            Are you sure you want to delete <strong>{selectedMother?.user.name}</strong>?
             This will permanently remove all their data including pregnancies, children records, and visits.
           </p>
           <p className="text-sm text-red-600 bg-red-50 p-3 rounded">

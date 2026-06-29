@@ -235,7 +235,7 @@ export default function MidwifeDashboard() {
                     {item.progress && (
                       <Badge variant={
                         item.progress.isOverdue ? 'danger' :
-                        item.progress.trimester === 3 ? 'warning' : 'info'
+                          item.progress.trimester === 3 ? 'warning' : 'info'
                       }>
                         {item.progress.trimesterLabel}
                       </Badge>
@@ -252,11 +252,10 @@ export default function MidwifeDashboard() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                         <div
-                          className={`h-2 rounded-full transition-all ${
-                            item.progress.isOverdue
+                          className={`h-2 rounded-full transition-all ${item.progress.isOverdue
                               ? 'bg-gradient-to-r from-red-400 to-red-600'
                               : 'bg-gradient-to-r from-pink-400 to-pink-600'
-                          }`}
+                            }`}
                           style={{ width: `${item.progress.percentComplete}%` }}
                         />
                       </div>

@@ -391,11 +391,10 @@ export default function SettingsPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-md text-left transition-colors ${
-                      activeTab === tab.id
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-md text-left transition-colors ${activeTab === tab.id
                         ? 'bg-teal-50 text-teal-700'
                         : 'text-gray-600 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-5 w-5" />
                     {tab.label}
@@ -573,27 +572,28 @@ export default function SettingsPage() {
                   };
                   const prefKey = keyMap[item.label];
                   return (
-                  <div key={item.label} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{item.label}</p>
-                      <p className="text-sm text-gray-500">{item.description}</p>
+                    <div key={item.label} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900">{item.label}</p>
+                        <p className="text-sm text-gray-500">{item.description}</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationPrefs[prefKey]}
+                          onChange={(e) =>
+                            setNotificationPrefs({
+                              ...notificationPrefs,
+                              [prefKey]: e.target.checked,
+                            })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                      </label>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notificationPrefs[prefKey]}
-                        onChange={(e) =>
-                          setNotificationPrefs({
-                            ...notificationPrefs,
-                            [prefKey]: e.target.checked,
-                          })
-                        }
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-                    </label>
-                  </div>
-                )})}
+                  )
+                })}
                 <div className="flex justify-end">
                   <Button
                     onClick={handleSaveNotifications}
