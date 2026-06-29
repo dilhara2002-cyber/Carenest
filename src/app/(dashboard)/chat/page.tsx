@@ -201,7 +201,7 @@ export default function ChatPage() {
               : 'Messages'}
           </p>
         </div>
-        <Button variant="outline" onClick={() => fetchContacts()}>
+        <Button variant="outline" className="font-semibold" onClick={() => fetchContacts()}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>

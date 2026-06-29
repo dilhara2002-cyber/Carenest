@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 // Get all midwives
 export async function GET(req: NextRequest) {
@@ -60,9 +60,17 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
+    const highRiskCases = await prisma.pregnancy.count({
+      where: {
+        status: 'ACTIVE',
+        highRisk: true,
+      },
+    });
+
     return NextResponse.json({
       data: midwives,
       total: midwives.length,
+      highRiskCases,
     });
   } catch (error) {
     console.error('Get midwives error:', error);
@@ -134,7 +142,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user and midwife profile in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Create user
       const user = await tx.user.create({
         data: {

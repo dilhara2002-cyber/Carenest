@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const dateTo = searchParams.get('dateTo');
     const upcoming = searchParams.get('upcoming');
 
-    const where: any = {};
+    const where: Record<string, any> = {};
 
     // Search filter - search in vaccine name
     if (search) {
@@ -43,9 +43,10 @@ export async function GET(req: NextRequest) {
 
     // Date range filters
     if (dateFrom || dateTo) {
-      where.scheduledDate = {};
-      if (dateFrom) where.scheduledDate.gte = new Date(dateFrom);
-      if (dateTo) where.scheduledDate.lte = new Date(dateTo + 'T23:59:59.999Z');
+      const scheduledDateFilter: Record<string, Date> = {};
+      if (dateFrom) scheduledDateFilter.gte = new Date(dateFrom);
+      if (dateTo) scheduledDateFilter.lte = new Date(dateTo + 'T23:59:59.999Z');
+      where.scheduledDate = scheduledDateFilter;
     }
 
     // Get upcoming vaccinations
@@ -291,7 +292,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    const updateData: any = { ...rest };
+    const updateData: Record<string, unknown> = { ...rest };
     
     if (status) updateData.status = status;
     if (administeredDate) updateData.administeredDate = new Date(administeredDate);

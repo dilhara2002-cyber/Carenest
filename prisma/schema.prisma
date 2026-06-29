@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // User roles enum
@@ -44,6 +45,18 @@ enum NotificationStatus {
 enum Gender {
   MALE
   FEMALE
+}
+
+enum ThriposhaRecipientType {
+  PREGNANT_MOTHER
+  LACTATING_MOTHER
+  CHILD_UNDER_5
+}
+
+enum ThriposhaPacketType {
+  RED
+  ORANGE
+  YELLOW
 }
 
 // User Table - Base user authentication
@@ -89,7 +102,9 @@ model Mother {
   mohRegistrationNumber String?   // H 502 registry serial number (e.g., 2026/MAH/102)
   mohRegNumber          String    @default("")
   nicNumber             String    @default("")
+  height                Decimal?  @db.Decimal(5, 2) // in cm
   assignedMidwifeId     String?
+  needsSpecialAttention Boolean   @default(false) // Midwife discretion: requires more frequent visits
   latitude              Decimal?  @db.Decimal(10, 7)
   longitude             Decimal?  @db.Decimal(10, 7)
   locationUpdatedAt     DateTime?
@@ -106,6 +121,7 @@ model Mother {
   vaccinations          Vaccination[]
   aiCareRecords         AICareRecord[]
   documents             Document[]
+  thriposhaDistributions ThriposhaDistribution[]
 
   @@map("mothers")
 }
@@ -126,6 +142,7 @@ model Midwife {
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignedMothers Mother[]
   visits          Visit[]
+  thriposhaDistributions ThriposhaDistribution[]
 
   @@map("midwives")
 }
@@ -164,6 +181,8 @@ model Child {
   birthPlace    String?
   healthNotes   String?
   image         String?
+  isPreterm           Boolean   @default(false)
+  gestationalAgeWeeks Int?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -172,6 +191,8 @@ model Child {
   mother        Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
   growthRecords GrowthRecord[]
   vaccinations  Vaccination[]
+  visits        Visit[]   // Postnatal visits linked to this child
+  thriposhaDistributions ThriposhaDistribution[]
 
   @@map("children")
 }
@@ -186,6 +207,14 @@ model GrowthRecord {
   headCircumference Decimal? @db.Decimal(5, 2) // in cm
   bmi         Decimal?  @db.Decimal(5, 2)
   notes       String?
+  ageMonths           Int?
+  correctedAgeMonths  Int?
+  zScoreWeight        Decimal?  @db.Decimal(5, 2)
+  zScoreHeight        Decimal?  @db.Decimal(5, 2)
+  zScoreBmi           Decimal?  @db.Decimal(5, 2)
+  weightStatus        String?
+  heightStatus        String?
+  bmiStatus           String?
 
   createdAt   DateTime  @default(now())
 
@@ -211,12 +240,21 @@ model Visit {
   symptoms    String?
   recommendations String?
 
+  // Postnatal visit scheduling fields
+  postnatalVisitNumber   Int?          // 1, 2, 3, or 4 for mandatory postnatal visits
+  postnatalWindowStart   DateTime?     // Earliest date for this postnatal visit
+  postnatalWindowEnd     DateTime?     // Latest date for this postnatal visit
+  isPostnatalMandatory   Boolean       @default(false)
+  isMohVisitRequired     Boolean       @default(false)  // True for 3rd postnatal visit
+  childId                String?       // Link postnatal visits to specific child
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   // Relations
   mother      Mother      @relation(fields: [motherId], references: [id], onDelete: Cascade)
   midwife     Midwife     @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+  child       Child?      @relation(fields: [childId], references: [id])
 
   @@map("visits")
 }
@@ -326,15 +364,60 @@ model DocumentType {
 // Document - Health documents stored in Supabase
 model Document {
   id             String       @id @default(cuid())
-  fileUrl        String       // Secure link to the Supabase storage bucket
+  fileUrl        String       // Secure link or placeholder
   fileName       String       // Original uploaded file name
   documentTypeId String
   motherId       String
   uploadedAt     DateTime     @default(now())
+  fileData       Bytes?       // Binary PDF data stored directly in PostgreSQL
 
   // Relations
   documentType   DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
   mother         Mother       @relation(fields: [motherId], references: [id], onDelete: Cascade)
 
   @@map("documents")
+}
+
+// Thriposha Distribution Record
+model ThriposhaDistribution {
+  id               String                  @id @default(cuid())
+  motherId         String?
+  childId          String?
+  midwifeId        String
+  recipientType    ThriposhaRecipientType
+  packetType       ThriposhaPacketType     @default(YELLOW)
+  quantity         Decimal                 @db.Decimal(5, 2) // in kg
+  distributionDate DateTime                @default(now())
+  month            Int                     // 1-12, the calendar month this covers
+  year             Int                     // e.g. 2026
+  batchNumber      String?
+  notes            String?
+
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  // Relations
+  mother           Mother?                 @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  child            Child?                  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  midwife          Midwife                 @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+
+  @@map("thriposha_distributions")
+}
+
+// Thriposha Stock Record
+model ThriposhaStock {
+  id            String    @id @default(cuid())
+  receivedDate  DateTime  @default(now())
+  quantity          Decimal   @db.Decimal(8, 2) // in kg
+  remainingQuantity Decimal   @db.Decimal(8, 2) @default(0)
+  packetType        ThriposhaPacketType @default(YELLOW)
+  batchNumber   String?
+  supplier      String?
+  expiryDate    DateTime?
+  notes         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("thriposha_stock")
 }

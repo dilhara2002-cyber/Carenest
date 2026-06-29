@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const motherId = searchParams.get('motherId');
     const status = searchParams.get('status');
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (motherId) {
       where.motherId = motherId;
