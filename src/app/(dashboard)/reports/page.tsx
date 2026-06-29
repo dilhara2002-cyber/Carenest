@@ -9,8 +9,17 @@ export default function ReportsPage() {
   const { data: session } = useSession();
   const [reportType, setReportType] = useState('mothers');
   const [dateRange, setDateRange] = useState('month');
+
+  // Custom Date Picker States
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const [loading, setLoading] = useState(false);
-  const [documentTypes, setDocumentTypes] = useState<any[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<{
+    id: string;
+    name: string;
+    createdAt: string;
+  }[]>([]);
   const [newDocTypeName, setNewDocTypeName] = useState('');
   const [docTypeLoading, setDocTypeLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -42,7 +51,7 @@ export default function ReportsPage() {
 
     setDocTypeLoading(true);
     setError('');
-    
+
     try {
       const res = await fetch('/api/documents/types', {
         method: 'POST',
@@ -91,11 +100,34 @@ export default function ReportsPage() {
   ];
 
   const generateReport = async () => {
+    // Basic frontend validation for custom range selection
+    if (dateRange === 'custom' && (!startDate || !endDate)) {
+      alert('Please select both a start date and an end date.');
+      return;
+    }
+
     setLoading(true);
-    // Simulate report generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-    alert('Report generated! (PDF export coming soon)');
+
+    try {
+      // Build request query string parameters dynamically
+      let url = `/api/${reportType}?range=${dateRange}`;
+      if (dateRange === 'custom') {
+        url += `&startDate=${startDate}&endDate=${endDate}`;
+      }
+
+      const res = await fetch(url);
+      if (res.ok) {
+        // Handle PDF generation stream or download links here when ready
+        alert('Report generated successfully with your selected date range!');
+      } else {
+        alert('Failed to generate report. Please check API connections.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while generating your report.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -118,7 +150,7 @@ export default function ReportsPage() {
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
-            
+
             {/* Create New Document Type */}
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-900">
@@ -150,24 +182,24 @@ export default function ReportsPage() {
                   Existing Document Types
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {documentTypes.map((docType: any) => (
+                  {documentTypes.map((docType: { id: string; name: string; _count?: { documents: number } }) => (
                     <div
                       key={docType.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
                     >
                       <div>
                         <p className="text-sm font-medium text-gray-900">{docType.name}</p>
-                        {docType._count?.documents > 0 && (
+                        {(docType._count?.documents ?? 0) > 0 && (
                           <p className="text-xs text-gray-500">
-                            {docType._count.documents} document(s)
+                            {docType._count?.documents} document(s)
                           </p>
                         )}
                       </div>
                       <button
                         onClick={() => handleDeleteDocumentType(docType.id)}
-                        disabled={docType._count?.documents > 0}
+                        disabled={(docType._count?.documents ?? 0) > 0}
                         className="p-2 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={docType._count?.documents > 0 ? 'Cannot delete - has documents' : 'Delete type'}
+                        title={(docType._count?.documents ?? 0) > 0 ? 'Cannot delete - has documents' : 'Delete type'}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -203,16 +235,42 @@ export default function ReportsPage() {
                 { value: 'quarter', label: 'Last 3 Months' },
                 { value: 'year', label: 'Last Year' },
                 { value: 'all', label: 'All Time' },
+                { value: 'custom', label: 'Custom Range 📅' },
               ]}
             />
-            <Button className="w-full" onClick={generateReport} isLoading={loading}>
+
+            {/* Custom Date Pickers render conditionally with smooth CSS transitions */}
+            {dateRange === 'custom' && (
+              <div className="grid grid-cols-2 gap-2 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-600 block">Start Date</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-600 block">End Date</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900"
+                  />
+                </div>
+              </div>
+            )}
+
+            <Button className="w-full mt-2" onClick={generateReport} isLoading={loading}>
               <FileText className="h-4 w-4 mr-2" />
               Generate Report
             </Button>
           </CardContent>
         </Card>
 
-        {/* Report Types */}
+        {/* Report Types Grid Preview Selector */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Available Reports</CardTitle>
@@ -225,15 +283,13 @@ export default function ReportsPage() {
                   <div
                     key={report.value}
                     onClick={() => setReportType(report.value)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      reportType === report.value
-                        ? 'border-teal-500 bg-teal-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${reportType === report.value
+                      ? 'border-teal-500 bg-teal-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
                   >
-                    <Icon className={`h-8 w-8 mb-2 ${
-                      reportType === report.value ? 'text-teal-600' : 'text-gray-400'
-                    }`} />
+                    <Icon className={`h-8 w-8 mb-2 ${reportType === report.value ? 'text-teal-600' : 'text-gray-400'
+                      }`} />
                     <h4 className="font-medium">{report.label}</h4>
                     <p className="text-sm text-gray-500">
                       {report.value === 'mothers' && 'List of registered mothers with details'}
@@ -249,7 +305,7 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      {/* Recent Reports */}
+      {/* Recent Reports history dashboard tracking logic card */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Reports</CardTitle>

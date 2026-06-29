@@ -102,7 +102,7 @@ export async function PATCH(
     } = body;
 
     // Build update data
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     if (lastMenstrualPeriod !== undefined) {
       updateData.lastMenstrualPeriod = new Date(lastMenstrualPeriod);

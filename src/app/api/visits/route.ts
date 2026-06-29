@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const visitType = searchParams.get('visitType');
     const upcoming = searchParams.get('upcoming');
 
-    const where: any = {};
+    const where: Record<string, any> = {};
 
     if (motherId) where.motherId = motherId;
     if (midwifeId) where.midwifeId = midwifeId;
@@ -55,6 +55,9 @@ export async function GET(req: NextRequest) {
             },
           },
         },
+        child: {
+          select: { id: true, name: true, gender: true, birthDate: true },
+        },
       },
       orderBy: { visitDate: 'asc' },
     });
@@ -83,7 +86,26 @@ export async function POST(req: NextRequest) {
       visitType,
       visitDate,
       notes,
+      postnatalVisitNumber,
+      postnatalWindowStart,
+      postnatalWindowEnd,
+      isPostnatalMandatory,
+      isMohVisitRequired,
+      childId,
     } = body;
+
+    // Validate postnatal visit date window
+    if (visitType === 'POSTNATAL' && isPostnatalMandatory && postnatalWindowStart && postnatalWindowEnd) {
+      const vDate = new Date(visitDate);
+      const start = new Date(postnatalWindowStart);
+      const end = new Date(postnatalWindowEnd);
+      if (vDate < start || vDate > end) {
+        return NextResponse.json(
+          { error: `Visit date must fall within the mandatory postnatal window (${start.toLocaleDateString()} to ${end.toLocaleDateString()})` },
+          { status: 400 }
+        );
+      }
+    }
 
     const visit = await prisma.visit.create({
       data: {
@@ -93,6 +115,12 @@ export async function POST(req: NextRequest) {
         visitDate: new Date(visitDate),
         notes,
         status: 'SCHEDULED',
+        postnatalVisitNumber: postnatalVisitNumber ? parseInt(postnatalVisitNumber) : null,
+        postnatalWindowStart: postnatalWindowStart ? new Date(postnatalWindowStart) : null,
+        postnatalWindowEnd: postnatalWindowEnd ? new Date(postnatalWindowEnd) : null,
+        isPostnatalMandatory: isPostnatalMandatory || false,
+        isMohVisitRequired: isMohVisitRequired || false,
+        childId: childId || null,
       },
     });
 
@@ -149,8 +177,34 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { id, ...updateData } = body;
 
+    const currentVisit = await prisma.visit.findUnique({
+      where: { id },
+    });
+    if (!currentVisit) {
+      return NextResponse.json({ error: 'Visit not found' }, { status: 404 });
+    }
+
     if (updateData.visitDate) {
       updateData.visitDate = new Date(updateData.visitDate);
+    }
+    if (updateData.postnatalWindowStart) {
+      updateData.postnatalWindowStart = new Date(updateData.postnatalWindowStart);
+    }
+    if (updateData.postnatalWindowEnd) {
+      updateData.postnatalWindowEnd = new Date(updateData.postnatalWindowEnd);
+    }
+
+    // Validate postnatal visit date window during update/reschedule
+    if (updateData.visitDate && (updateData.isPostnatalMandatory || currentVisit.isPostnatalMandatory)) {
+      const vDate = new Date(updateData.visitDate);
+      const start = updateData.postnatalWindowStart ? new Date(updateData.postnatalWindowStart) : (currentVisit.postnatalWindowStart ? new Date(currentVisit.postnatalWindowStart) : null);
+      const end = updateData.postnatalWindowEnd ? new Date(updateData.postnatalWindowEnd) : (currentVisit.postnatalWindowEnd ? new Date(currentVisit.postnatalWindowEnd) : null);
+      if (start && end && (vDate < start || vDate > end)) {
+        return NextResponse.json(
+          { error: `Visit date must fall within the mandatory postnatal window (${start.toLocaleDateString()} to ${end.toLocaleDateString()})` },
+          { status: 400 }
+        );
+      }
     }
 
     const visit = await prisma.visit.update({

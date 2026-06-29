@@ -99,10 +99,10 @@ export async function DELETE(
       }, { status: 400 });
     }
 
-    // Mothers can only delete their own documents
-    if (session.user.role === 'MOTHER' && session.user.motherId !== motherId) {
+    // Security Guardrail: Mothers are NEVER allowed to delete documents
+    if (session.user.role === 'MOTHER') {
       return NextResponse.json({ 
-        error: 'You do not have permission to delete this document' 
+        error: 'Mothers are not authorized to delete documents' 
       }, { status: 403 });
     }
 

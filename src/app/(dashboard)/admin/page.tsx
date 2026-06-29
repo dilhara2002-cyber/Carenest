@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
-import { Users, Heart, Baby, Calendar, Syringe, UserPlus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Users, Heart, Baby, Calendar, Syringe, UserPlus,
+  TrendingUp, ArrowRight, Shield, Activity, Brain, BarChart3,
+} from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 
@@ -34,184 +37,357 @@ export default function AdminDashboard() {
         setLoading(false);
       }
     };
-
     fetchDashboard();
   }, []);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <div className="relative">
+          <div className="animate-spin rounded-full h-14 w-14 border-4 border-[#E5E7EB] border-t-[#2563EB]"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Shield className="h-5 w-5 text-[#2563EB] animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
+  const currentHour = new Date().getHours();
+  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
+
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          Admin Dashboard 🛡️
-        </h1>
-        <p className="opacity-90">
-          Welcome back, {session?.user?.name}. Monitor and manage the CareNest system.
-        </p>
+    <div className="space-y-6 bg-[#F9FAFB] min-h-screen">
+
+      {/* ── Hero Banner ── */}
+      {/* Mirrors homepage CTA: bg-[#111827] with blue + pink overlays */}
+      <div className="relative overflow-hidden rounded-2xl bg-[#111827] p-8 text-white">
+        {/* Homepage-style gradient overlays */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#1E40AF]/25 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-r from-[#F472B6]/15 to-transparent pointer-events-none" />
+
+        {/* Shimmer sweep */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+        </div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div>
+            {/* Green "live" pill — mirrors homepage hero badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D1FAE5] mb-5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+              </span>
+              <span className="text-[#10B981] text-xs font-semibold tracking-widest uppercase">System Administration</span>
+            </div>
+
+            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+              {greeting}, {session?.user?.name} 👋
+            </h1>
+            {/* Gradient subtext — mirrors homepage h1 gradient */}
+            <p className="text-[#6B7280] text-base max-w-lg leading-relaxed font-light">
+              Monitor and manage the{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#F472B6] font-semibold">
+                CareNest
+              </span>{' '}
+              maternal health system. Everything is running smoothly.
+            </p>
+          </div>
+
+          {/* Right side info chips */}
+          <div className="hidden lg:flex flex-col items-end gap-3">
+            <div className="text-right">
+              <p className="text-xs text-[#6B7280] mb-0.5">Today</p>
+              <p className="text-base font-semibold text-white">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#D1FAE5]/10 border border-[#10B981]/20 rounded-full">
+                <Activity className="h-3.5 w-3.5 text-[#10B981] animate-pulse" />
+                <span className="text-xs text-[#10B981] font-medium">All Systems Active</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#2563EB]/10 border border-[#2563EB]/20 rounded-full">
+                <Shield className="h-3.5 w-3.5 text-[#2563EB]" />
+                <span className="text-xs text-[#3B82F6] font-medium">Admin</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* ── Stats Grid ── */}
+      {/* Each card uses one homepage feature accent colour */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        {/* Mothers → blue (homepage primary) */}
         <StatCard
           title="Total Mothers"
           value={dashboardData?.totalMothers?.toString() || '0'}
-          icon={<Users className="h-5 w-5 text-blue-500" />}
-          color="blue"
+          icon={<Users className="h-5 w-5 text-[#2563EB]" />}
+          iconBg="bg-blue-50"
+          valueColor="text-[#2563EB]"
+          barColor="bg-[#2563EB]"
+          delay="stagger-1"
         />
+        {/* Midwives → amber (homepage Shield accent) */}
         <StatCard
           title="Midwives"
           value={dashboardData?.totalMidwives?.toString() || '0'}
-          icon={<UserPlus className="h-5 w-5 text-purple-500" />}
-          color="purple"
+          icon={<UserPlus className="h-5 w-5 text-[#F59E0B]" />}
+          iconBg="bg-amber-50"
+          valueColor="text-[#F59E0B]"
+          barColor="bg-[#F59E0B]"
+          delay="stagger-2"
         />
+        {/* Active Pregnancies → red/heart (homepage Heart accent) */}
         <StatCard
           title="Active Pregnancies"
           value={dashboardData?.activePregnancies?.toString() || '0'}
-          icon={<Heart className="h-5 w-5 text-pink-500" />}
-          color="pink"
+          icon={<Heart className="h-5 w-5 text-[#EF4444]" />}
+          iconBg="bg-red-50"
+          valueColor="text-[#EF4444]"
+          barColor="bg-[#EF4444]"
+          delay="stagger-3"
         />
+        {/* Children → pink (homepage gradient end) */}
         <StatCard
           title="Children"
           value={dashboardData?.totalChildren?.toString() || '0'}
-          icon={<Baby className="h-5 w-5 text-cyan-500" />}
-          color="cyan"
+          icon={<Baby className="h-5 w-5 text-[#F472B6]" />}
+          iconBg="bg-pink-50"
+          valueColor="text-[#F472B6]"
+          barColor="bg-[#F472B6]"
+          delay="stagger-4"
         />
+        {/* Visits → green (homepage emerald accent) */}
         <StatCard
           title="Visits (Month)"
           value={dashboardData?.visitsThisMonth?.toString() || '0'}
-          icon={<Calendar className="h-5 w-5 text-green-500" />}
-          color="green"
+          icon={<Calendar className="h-5 w-5 text-[#10B981]" />}
+          iconBg="bg-emerald-50"
+          valueColor="text-[#10B981]"
+          barColor="bg-[#10B981]"
+          delay="stagger-5"
         />
+        {/* Vaccinations → blue-500 (homepage Brain accent) */}
         <StatCard
           title="Vaccinations"
           value={dashboardData?.vaccinationsThisMonth?.toString() || '0'}
-          icon={<Syringe className="h-5 w-5 text-orange-500" />}
-          color="orange"
+          icon={<Syringe className="h-5 w-5 text-[#3B82F6]" />}
+          iconBg="bg-blue-50"
+          valueColor="text-[#3B82F6]"
+          barColor="bg-[#3B82F6]"
+          delay="stagger-6"
         />
       </div>
 
-      {/* Recent Registrations and Quick Actions */}
+      {/* ── Bottom Two-Column ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Registrations */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Recent Registrations</span>
-              <Link href="/mothers" className="text-sm text-teal-600 hover:underline">
-                View All
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {dashboardData?.recentRegistrations && dashboardData.recentRegistrations.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dashboardData.recentRegistrations.map((user: any) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{formatDate(user.createdAt)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No recent registrations</p>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Admin Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <Link
-                href="/mothers"
-                className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <Users className="h-8 w-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-blue-900">Manage Mothers</span>
-              </Link>
-              <Link
-                href="/midwives"
-                className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-              >
-                <UserPlus className="h-8 w-8 text-purple-600 mb-2" />
-                <span className="text-sm font-medium text-purple-900">Manage Midwives</span>
-              </Link>
-              <Link
-                href="/visits"
-                className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <Calendar className="h-8 w-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-green-900">All Visits</span>
-              </Link>
-              <Link
-                href="/vaccinations"
-                className="flex flex-col items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
-              >
-                <Syringe className="h-8 w-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium text-orange-900">Vaccinations</span>
-              </Link>
-              <Link
-                href="/reports"
-                className="flex flex-col items-center p-4 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors col-span-2"
-              >
-                <svg className="h-8 w-8 text-pink-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span className="text-sm font-medium text-pink-900">Reports & Analytics</span>
-              </Link>
+        {/* Recent Registrations */}
+        <div className="animate-fade-in-up bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+            <span className="flex items-center gap-2.5 text-[#111827] font-semibold text-sm">
+              <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50">
+                <TrendingUp className="h-4 w-4 text-[#2563EB]" />
+              </div>
+              Recent Registrations
+            </span>
+            <Link
+              href="/mothers"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] bg-blue-50 hover:bg-[#2563EB] hover:text-white px-3 py-1.5 rounded-full transition-all duration-300 group"
+            >
+              View All
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          {/* List */}
+          {dashboardData?.recentRegistrations && dashboardData.recentRegistrations.length > 0 ? (
+            <div className="divide-y divide-[#F9FAFB]">
+              {dashboardData.recentRegistrations.map((user: any, idx: number) => {
+                // Cycle through homepage accent colours for avatars
+                const avatarStyles = [
+                  { bg: 'bg-blue-50', text: 'text-[#2563EB]', border: 'border-blue-100' },
+                  { bg: 'bg-pink-50', text: 'text-[#F472B6]', border: 'border-pink-100' },
+                  { bg: 'bg-emerald-50', text: 'text-[#10B981]', border: 'border-emerald-100' },
+                  { bg: 'bg-amber-50', text: 'text-[#F59E0B]', border: 'border-amber-100' },
+                  { bg: 'bg-red-50', text: 'text-[#EF4444]', border: 'border-red-100' },
+                ];
+                const style = avatarStyles[idx % avatarStyles.length];
+                return (
+                  <div
+                    key={user.id}
+                    className="flex items-center gap-4 px-6 py-3.5 hover:bg-[#F9FAFB] transition-colors"
+                  >
+                    <div className={`h-10 w-10 rounded-xl border ${style.border} ${style.bg} flex items-center justify-center ${style.text} font-bold text-sm shrink-0`}>
+                      {user.name?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#111827] truncate">{user.name}</p>
+                      <p className="text-xs text-[#6B7280] truncate">{user.email}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="inline-block text-[10px] font-semibold text-[#10B981] bg-[#D1FAE5] px-2 py-0.5 rounded-full">
+                        Mother
+                      </span>
+                      <p className="text-[10px] text-[#6B7280]">{formatDate(user.createdAt)}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
+          ) : (
+            <div className="py-14 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-3">
+                <Users className="h-6 w-6 text-[#2563EB]" />
+              </div>
+              <p className="text-[#111827] text-sm font-semibold">No recent registrations</p>
+              <p className="text-[#6B7280] text-xs mt-0.5 font-light">New mothers will appear here</p>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="animate-fade-in-up stagger-2 bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm">
+          {/* Card header */}
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-[#E5E7EB]">
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-amber-50">
+              <BarChart3 className="h-4 w-4 text-[#F59E0B]" />
+            </div>
+            <span className="text-[#111827] font-semibold text-sm">Quick Actions</span>
+          </div>
+
+          <div className="p-5 grid grid-cols-2 gap-3">
+            {/* Mothers – blue */}
+            <ActionCard
+              href="/mothers"
+              icon={<Users className="h-5 w-5 text-[#2563EB]" />}
+              iconBg="bg-blue-50"
+              hoverBorder="hover:border-[#2563EB]/30"
+              hoverShadow="hover:shadow-blue-100"
+              label="Manage Mothers"
+              sublabel={`${dashboardData?.totalMothers || 0} registered`}
+              sublabelColor="text-[#6B7280]"
+            />
+            {/* Midwives – amber */}
+            <ActionCard
+              href="/midwives"
+              icon={<UserPlus className="h-5 w-5 text-[#F59E0B]" />}
+              iconBg="bg-amber-50"
+              hoverBorder="hover:border-[#F59E0B]/30"
+              hoverShadow="hover:shadow-amber-100"
+              label="Manage Midwives"
+              sublabel={`${dashboardData?.totalMidwives || 0} active`}
+              sublabelColor="text-[#6B7280]"
+            />
+            {/* Visits – green */}
+            <ActionCard
+              href="/visits"
+              icon={<Calendar className="h-5 w-5 text-[#10B981]" />}
+              iconBg="bg-emerald-50"
+              hoverBorder="hover:border-[#10B981]/30"
+              hoverShadow="hover:shadow-emerald-100"
+              label="All Visits"
+              sublabel={`${dashboardData?.visitsThisMonth || 0} this month`}
+              sublabelColor="text-[#6B7280]"
+            />
+            {/* Vaccinations – blue-500 */}
+            <ActionCard
+              href="/vaccinations"
+              icon={<Syringe className="h-5 w-5 text-[#3B82F6]" />}
+              iconBg="bg-blue-50"
+              hoverBorder="hover:border-[#3B82F6]/30"
+              hoverShadow="hover:shadow-blue-100"
+              label="Vaccinations"
+              sublabel={`${dashboardData?.vaccinationsThisMonth || 0} this month`}
+              sublabelColor="text-[#6B7280]"
+            />
+
+            {/* Reports – full-width dark CTA, mirrors homepage CTA section */}
+            <Link
+              href="/reports"
+              className="action-glow col-span-2 flex items-center gap-4 p-4 bg-[#111827] rounded-2xl border border-[#1E40AF]/20 hover:border-[#2563EB]/40 hover:shadow-lg hover:shadow-black/10 transition-all duration-500 group"
+            >
+              {/* Blue → pink gradient icon, mirrors homepage h1 gradient */}
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#F472B6] shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <BarChart3 className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-bold text-white block">Reports &amp; Analytics</span>
+                <span className="text-xs text-[#6B7280] font-light">View system-wide insights</span>
+              </div>
+              <ArrowRight className="h-4 w-4 text-[#3B82F6] group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+/* ── StatCard ── */
 function StatCard({
-  title,
-  value,
-  icon,
-  color,
+  title, value, icon, iconBg, valueColor, barColor, delay,
 }: {
   title: string;
   value: string;
   icon: React.ReactNode;
-  color: string;
+  iconBg: string;
+  valueColor: string;
+  barColor: string;
+  delay: string;
 }) {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide">{title}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          </div>
-          <div className="p-2 bg-gray-100 rounded-lg">
+    <div
+      className={`card-lift animate-fade-in-up ${delay} bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm`}
+    >
+      {/* Thin top accent bar matching the icon colour */}
+      <div className={`h-1 w-full ${barColor} opacity-70`} />
+      <div className="p-4 pt-3.5">
+        <div className="flex items-center justify-between mb-3">
+          {/* Icon in homepage-style rounded-xl accent bg */}
+          <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${iconBg} group-hover:scale-110 transition-transform duration-300`}>
             {icon}
           </div>
+          {/* Minimal live dot */}
+          <div className="flex items-center gap-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${barColor} animate-pulse`} />
+            <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest">Live</span>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+        <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-widest mb-1">{title}</p>
+        <p className={`text-3xl font-extrabold ${valueColor} animate-count-up`}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── ActionCard ── */
+function ActionCard({
+  href, icon, iconBg, hoverBorder, hoverShadow, label, sublabel, sublabelColor,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  hoverBorder: string;
+  hoverShadow: string;
+  label: string;
+  sublabel: string;
+  sublabelColor: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`action-glow flex flex-col items-center p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl ${hoverBorder} hover:bg-white hover:shadow-md ${hoverShadow} transition-all duration-300 group`}
+    >
+      <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${iconBg} mb-3 group-hover:scale-110 transition-transform duration-300`}>
+        {icon}
+      </div>
+      <span className="text-sm font-semibold text-[#111827]">{label}</span>
+      <span className={`text-xs ${sublabelColor} mt-0.5 font-light`}>{sublabel}</span>
+    </Link>
   );
 }

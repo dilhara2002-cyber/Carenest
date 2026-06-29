@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
+import { NotificationStatus } from '@prisma/client';
+
 // Get notifications
 export async function GET(req: NextRequest) {
   try {
@@ -15,11 +17,14 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    const where: any = {
+    const where: {
+      userId: string;
+      status?: NotificationStatus;
+    } = {
       userId: session.user.id,
     };
 
-    if (status) {
+    if (status === 'READ' || status === 'UNREAD') {
       where.status = status;
     }
 

@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
-    const where = role ? { role: role as any } : {};
+    const where = role ? { role: role as 'MOTHER' | 'MIDWIFE' | 'ADMIN' } : {};
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({

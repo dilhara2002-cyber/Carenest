@@ -96,7 +96,7 @@ export default function AiCarePage() {
               key={tab.id}
               variant={activeTab === tab.id ? 'default' : 'outline'}
               onClick={() => {
-                setActiveTab(tab.id as any);
+                setActiveTab(tab.id as 'FOOD' | 'EXERCISE' | 'FIRSTAID');
                 setSuggestions('');
               }}
               className={activeTab === tab.id ? '' : ''}

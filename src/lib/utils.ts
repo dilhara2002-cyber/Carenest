@@ -166,3 +166,62 @@ export const vaccineSchedule = {
     { name: 'DPT Booster', ageMonths: 18 },
   ],
 };
+
+export interface PostnatalVisitWindow {
+  visitNumber: number;
+  windowStart: Date;
+  windowEnd: Date;
+  suggestedDate: Date;
+  isMohVisitRequired: boolean;
+}
+
+export function getPostnatalVisitSchedule(birthDate: Date | string): PostnatalVisitWindow[] {
+  const base = new Date(birthDate);
+  base.setHours(0, 0, 0, 0);
+
+  const getOffsetDate = (days: number): Date => {
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
+
+  return [
+    {
+      visitNumber: 1,
+      windowStart: getOffsetDate(0),
+      windowEnd: getOffsetDate(5),
+      suggestedDate: getOffsetDate(3),
+      isMohVisitRequired: false,
+    },
+    {
+      visitNumber: 2,
+      windowStart: getOffsetDate(6),
+      windowEnd: getOffsetDate(10),
+      suggestedDate: getOffsetDate(8),
+      isMohVisitRequired: false,
+    },
+    {
+      visitNumber: 3,
+      windowStart: getOffsetDate(14),
+      windowEnd: getOffsetDate(21),
+      suggestedDate: getOffsetDate(18),
+      isMohVisitRequired: true,
+    },
+    {
+      visitNumber: 4,
+      windowStart: getOffsetDate(42),
+      windowEnd: getOffsetDate(42),
+      suggestedDate: getOffsetDate(42),
+      isMohVisitRequired: false,
+    },
+  ];
+}
+
+export function isMonthlyPrenatalVisitDue(lastVisitDate: Date | string | null | undefined): boolean {
+  if (!lastVisitDate) return true;
+  const last = new Date(lastVisitDate);
+  const today = new Date();
+  const diffTime = today.getTime() - last.getTime();
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+  return diffDays >= 30;
+}

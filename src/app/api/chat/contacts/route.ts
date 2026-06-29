@@ -14,7 +14,18 @@ export async function GET(req: NextRequest) {
     const userRole = session.user.role;
     const userId = session.user.id;
 
-    let contacts: any[] = [];
+    let contacts: {
+      id: string;
+      name: string;
+      email: string;
+      profileImage?: string | null;
+      role: string;
+      specialization?: string | null;
+      bloodGroup?: string | null;
+      unreadCount: number;
+      lastMessage?: string | null;
+      lastMessageTime?: Date | null;
+    }[] = [];
 
     if (userRole === 'MOTHER') {
       // For mothers: get their assigned midwife
