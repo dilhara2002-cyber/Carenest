@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
         Math.round(byRecipientType[key].totalKg * 100) / 100;
     }
 
-    // Breakdown by packet color type
+    // Breakdown by packet color type (for the selected month's distributions)
     const byPacketType: Record<ThriposhaPacketType, { count: number; totalKg: number }> = {
       RED: { count: 0, totalKg: 0 },
       ORANGE: { count: 0, totalKg: 0 },
@@ -100,40 +100,48 @@ export async function GET(req: NextRequest) {
       totalKg: Math.round(m.totalKg * 100) / 100,
     }));
 
-    // Stock summary
-    const stockRecords = await prisma.thriposhaStock.findMany();
-    const totalReceivedKg = stockRecords.reduce(
+    // ── Stock summary scoped to the selected month ──
+    // Get stock records received in the selected month
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+
+    const monthStockRecords = await prisma.thriposhaStock.findMany({
+      where: {
+        receivedDate: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    });
+
+    // Total received this month
+    const totalReceivedKg = monthStockRecords.reduce(
       (sum, s) => sum + Number(s.quantity),
       0
     );
-    const allDistributedAgg = await prisma.thriposhaDistribution.aggregate({
-      _sum: { quantity: true },
-    });
-    const allDistributedKg = Number(allDistributedAgg._sum.quantity || 0);
 
-    // Sum received by packetType
+    // Sum received by packetType for this month
     const receivedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
-    for (const s of stockRecords) {
+    for (const s of monthStockRecords) {
       receivedByColor[s.packetType] = (receivedByColor[s.packetType] || 0) + Number(s.quantity);
     }
 
-    // Sum distributed by packetType
+    // Sum distributed by packetType for this month (from the month's distributions)
     const distributedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
-    const distributionsGroupBy = await prisma.thriposhaDistribution.groupBy({
-      by: ['packetType'],
-      _sum: { quantity: true },
-    });
-    for (const item of distributionsGroupBy) {
-      if (item.packetType) {
-        distributedByColor[item.packetType] = Number(item._sum.quantity || 0);
+    for (const d of distributions) {
+      if (d.packetType) {
+        distributedByColor[d.packetType] = (distributedByColor[d.packetType] || 0) + Number(d.quantity);
       }
     }
 
+    // Remaining for this month = received this month - distributed this month
     const remainingByColor = {
       RED: Math.round((receivedByColor.RED - distributedByColor.RED) * 100) / 100,
       ORANGE: Math.round((receivedByColor.ORANGE - distributedByColor.ORANGE) * 100) / 100,
       YELLOW: Math.round((receivedByColor.YELLOW - distributedByColor.YELLOW) * 100) / 100,
     };
+
+    const monthRemainingKg = Math.round((totalReceivedKg - totalDistributedKg) * 100) / 100;
 
     // Monthly trend (last 6 months)
     const monthlyTrend = [];
@@ -171,9 +179,8 @@ export async function GET(req: NextRequest) {
         byMidwife,
         stockSummary: {
           totalReceivedKg: Math.round(totalReceivedKg * 100) / 100,
-          totalDistributedKg: Math.round(allDistributedKg * 100) / 100,
-          remainingKg:
-            Math.round((totalReceivedKg - allDistributedKg) * 100) / 100,
+          totalDistributedKg: Math.round(totalDistributedKg * 100) / 100,
+          remainingKg: monthRemainingKg,
           byColor: {
             received: receivedByColor,
             distributed: distributedByColor,

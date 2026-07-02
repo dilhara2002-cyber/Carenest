@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { ThriposhaPacketType } from '@prisma/client';
 
-// Get stock records with summary
+// Get stock records with summary — supports optional month/year filtering
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -12,47 +12,95 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+
+    // Build filter for stock records
+    const stockWhere: Record<string, unknown> = {};
+
+    if (month && year) {
+      // Filter stock records received in the specific calendar month
+      const m = parseInt(month);
+      const y = parseInt(year);
+      const startOfMonth = new Date(y, m - 1, 1);
+      const endOfMonth = new Date(y, m, 0, 23, 59, 59, 999);
+
+      stockWhere.receivedDate = {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      };
+    }
+
     const stockRecords = await prisma.thriposhaStock.findMany({
+      where: stockWhere,
       orderBy: { receivedDate: 'desc' },
     });
 
-    // Calculate total received
+    // Calculate total received (from filtered records)
     const totalReceived = stockRecords.reduce(
       (sum, record) => sum + Number(record.quantity),
       0
     );
 
     // Calculate total distributed
-    const distributedAgg = await prisma.thriposhaDistribution.aggregate({
-      _sum: { quantity: true },
-    });
-    const totalDistributed = Number(distributedAgg._sum.quantity || 0);
+    // If month/year filter is applied, scope distributed to that month too
+    let totalDistributed = 0;
+    if (month && year) {
+      const m = parseInt(month);
+      const y = parseInt(year);
+      const distributedAgg = await prisma.thriposhaDistribution.aggregate({
+        where: { month: m, year: y },
+        _sum: { quantity: true },
+      });
+      totalDistributed = Number(distributedAgg._sum.quantity || 0);
+    } else {
+      const distributedAgg = await prisma.thriposhaDistribution.aggregate({
+        _sum: { quantity: true },
+      });
+      totalDistributed = Number(distributedAgg._sum.quantity || 0);
+    }
 
-    // Calculate total remaining
+    // Calculate total remaining from filtered stock records
     const totalRemaining = stockRecords.reduce(
       (sum, record) => sum + Number(record.remainingQuantity),
       0
     );
 
-    // Sum received by packetType
+    // Sum received by packetType (from filtered records)
     const receivedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
     for (const record of stockRecords) {
       receivedByColor[record.packetType] = (receivedByColor[record.packetType] || 0) + Number(record.quantity);
     }
 
     // Sum distributed by packetType
-    const distributedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
-    const distributionsAgg = await prisma.thriposhaDistribution.groupBy({
-      by: ['packetType'],
-      _sum: { quantity: true },
-    });
-    for (const d of distributionsAgg) {
-      if (d.packetType) {
-        distributedByColor[d.packetType] = Number(d._sum.quantity || 0);
+    let distributedByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
+    if (month && year) {
+      const m = parseInt(month);
+      const y = parseInt(year);
+      const distributionsAgg = await prisma.thriposhaDistribution.groupBy({
+        by: ['packetType'],
+        where: { month: m, year: y },
+        _sum: { quantity: true },
+      });
+      for (const d of distributionsAgg) {
+        if (d.packetType) {
+          distributedByColor[d.packetType] = Number(d._sum.quantity || 0);
+        }
+      }
+    } else {
+      const distributionsAgg = await prisma.thriposhaDistribution.groupBy({
+        by: ['packetType'],
+        _sum: { quantity: true },
+      });
+      for (const d of distributionsAgg) {
+        if (d.packetType) {
+          distributedByColor[d.packetType] = Number(d._sum.quantity || 0);
+        }
       }
     }
 
-    // Sum remaining by packetType
+    // Sum remaining by packetType (from filtered stock records)
     const remainingByColor: Record<ThriposhaPacketType, number> = { RED: 0, ORANGE: 0, YELLOW: 0 };
     for (const record of stockRecords) {
       remainingByColor[record.packetType] = (remainingByColor[record.packetType] || 0) + Number(record.remainingQuantity);
@@ -176,7 +224,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Update stock record
+// Update stock record (Admin can edit past stock details)
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -198,7 +246,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Stock record not found' }, { status: 404 });
     }
 
-    if (updateData.quantity) {
+    if (updateData.quantity !== undefined) {
       const qtyVal = Number(updateData.quantity);
       if (isNaN(qtyVal) || !Number.isInteger(qtyVal) || qtyVal <= 0) {
         return NextResponse.json(
@@ -206,8 +254,21 @@ export async function PUT(req: NextRequest) {
           { status: 400 }
         );
       }
+
+      // Calculate how much has already been distributed from this stock record
+      const alreadyDistributed = Number(existingStock.quantity) - Number(existingStock.remainingQuantity);
+
+      // New quantity cannot be less than what's already been distributed
+      if (qtyVal < alreadyDistributed) {
+        return NextResponse.json(
+          { error: `Cannot reduce quantity below ${alreadyDistributed} packets (already distributed)` },
+          { status: 400 }
+        );
+      }
+
       updateData.quantity = qtyVal;
-      updateData.remainingQuantity = qtyVal;
+      // Adjust remaining quantity: new remaining = new quantity - already distributed
+      updateData.remainingQuantity = qtyVal - alreadyDistributed;
     }
 
     if (updateData.packetType) {
@@ -264,6 +325,7 @@ export async function PUT(req: NextRequest) {
         action: 'THRIPOSHA_STOCK_UPDATED',
         entity: 'ThriposhaStock',
         entityId: stock.id,
+        details: `Updated stock record: ${Number(stock.quantity)} packets of ${stock.packetType} (received ${targetDate.toISOString().split('T')[0]})`,
       },
     });
 
