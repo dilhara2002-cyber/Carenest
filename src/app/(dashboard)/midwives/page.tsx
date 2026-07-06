@@ -40,7 +40,6 @@ import {
   AlertTriangle,
   AlertCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { formatDate, cn } from '@/lib/utils';
 
 interface Midwife {
@@ -162,7 +161,7 @@ export default function MidwivesPage() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter !== 'all') params.append('status', statusFilter);
-      
+
       const res = await fetch(`/api/midwives?${params.toString()}`);
       const data = await res.json();
       setMidwives(data.data || []);
@@ -580,7 +579,7 @@ export default function MidwivesPage() {
                             variant={midwife.user.isActive ? 'outline' : 'default'}
                             className={cn(
                               "rounded-lg h-9 w-9 p-0 transition-all",
-                              midwife.user.isActive 
+                              midwife.user.isActive
                                 ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-gray-200"
                                 : "bg-emerald-600 hover:bg-emerald-700 text-white"
                             )}
@@ -622,7 +621,7 @@ export default function MidwivesPage() {
       <Card className="border-red-100 bg-white">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-slate-800">
+            <span className="flex items-center gap-2 text-red-600">
               <AlertCircle className="h-6 w-6 text-red-600 fill-red-600 text-white" />
               <span className="font-bold text-lg">High-Risk Alerts</span>
             </span>
@@ -637,14 +636,14 @@ export default function MidwivesPage() {
             <div className="flex items-center gap-4">
               <div className="relative w-12 h-12 rounded-full overflow-hidden border border-red-200">
                 <img
-                  src="/avatars/elena.png"
-                  alt="Elena Adams"
+                  src="/avatars/dilini.png"
+                  alt="Dilini Perera"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-800">Elena Adams</span>
+                  <span className="font-bold text-slate-800">Dilini Perera</span>
                   <span className="text-xs text-slate-400 font-medium">32 weeks</span>
                 </div>
                 <p className="text-sm font-bold text-red-600 mt-1">Elevated Blood Pressure (145/92)</p>
@@ -652,7 +651,7 @@ export default function MidwivesPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 self-end md:self-center">
-              <button 
+              <button
                 onClick={() => window.open('tel:+94771234567')}
                 className="px-5 py-2 border border-slate-200 rounded-full text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
               >
@@ -672,14 +671,14 @@ export default function MidwivesPage() {
             <div className="flex items-center gap-4">
               <div className="relative w-12 h-12 rounded-full overflow-hidden border border-amber-200">
                 <img
-                  src="/avatars/maria.png"
-                  alt="Maria Wong"
+                  src="/avatars/sanduni.png"
+                  alt="Sanduni Fernando"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-800">Maria Wong</span>
+                  <span className="font-bold text-slate-800">Sanduni Fernando</span>
                   <span className="text-xs text-slate-400 font-medium">28 weeks</span>
                 </div>
                 <p className="text-sm font-bold text-amber-600 mt-1">Missed Gestational Diabetes Screening</p>
@@ -687,7 +686,7 @@ export default function MidwivesPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 self-end md:self-center">
-              <Link 
+              <Link
                 href="/chat"
                 className="px-5 py-2 border border-slate-200 rounded-full text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
               >
@@ -720,7 +719,7 @@ export default function MidwivesPage() {
             <div className="flex items-center justify-between max-w-md mx-auto relative px-4">
               {/* Connector line */}
               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
-              <div 
+              <div
                 className="absolute top-1/2 left-0 h-0.5 bg-[#2563EB] -translate-y-1/2 z-0 transition-all duration-300"
                 style={{ width: `${((formStep - 1) / 2) * 100}%` }}
               />

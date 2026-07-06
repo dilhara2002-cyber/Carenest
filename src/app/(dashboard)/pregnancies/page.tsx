@@ -81,7 +81,7 @@ export default function PregnanciesPage() {
     try {
       const params = new URLSearchParams();
       if (statusFilter) params.append('status', statusFilter);
-      
+
       const res = await fetch(`/api/pregnancies?${params.toString()}`);
       const data = await res.json();
       setPregnancies(data.data || []);
@@ -129,7 +129,7 @@ export default function PregnanciesPage() {
       alert('Please select a mother');
       return;
     }
-    
+
     setActionLoading(true);
     try {
       const res = await fetch('/api/pregnancies', {
@@ -181,8 +181,8 @@ export default function PregnanciesPage() {
   const openEditModal = (pregnancy: Pregnancy) => {
     setEditingPregnancy(pregnancy);
     setEditFormData({
-      lastMenstrualPeriod: pregnancy.lastMenstrualPeriod 
-        ? new Date(pregnancy.lastMenstrualPeriod).toISOString().split('T')[0] 
+      lastMenstrualPeriod: pregnancy.lastMenstrualPeriod
+        ? new Date(pregnancy.lastMenstrualPeriod).toISOString().split('T')[0]
         : '',
       medicalNotes: pregnancy.medicalNotes || '',
       highRisk: pregnancy.highRisk,
@@ -375,15 +375,14 @@ export default function PregnanciesPage() {
       {filteredPregnancies.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredPregnancies.map((pregnancy) => (
-            <Card 
-              key={pregnancy.id} 
+            <Card
+              key={pregnancy.id}
               className={`overflow-hidden ${pregnancy.status === 'ACTIVE' ? 'border-pink-200' : ''}`}
             >
-              <div className={`h-2 ${
-                pregnancy.status === 'ACTIVE' ? 'bg-gradient-to-r from-pink-400 to-pink-600' :
-                pregnancy.status === 'DELIVERED' ? 'bg-green-500' :
-                pregnancy.status === 'MISCARRIAGE' ? 'bg-gray-400' : 'bg-gray-300'
-              }`} />
+              <div className={`h-2 ${pregnancy.status === 'ACTIVE' ? 'bg-gradient-to-r from-pink-400 to-pink-600' :
+                  pregnancy.status === 'DELIVERED' ? 'bg-green-500' :
+                    pregnancy.status === 'MISCARRIAGE' ? 'bg-gray-400' : 'bg-gray-300'
+                }`} />
               <CardContent className="p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -412,7 +411,7 @@ export default function PregnanciesPage() {
                     )}
                     <Badge variant={
                       pregnancy.status === 'ACTIVE' ? 'success' :
-                      pregnancy.status === 'DELIVERED' ? 'info' : 'default'
+                        pregnancy.status === 'DELIVERED' ? 'info' : 'default'
                     }>
                       {pregnancy.status}
                     </Badge>
@@ -432,11 +431,10 @@ export default function PregnanciesPage() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-3">
                           <div
-                            className={`h-3 rounded-full transition-all ${
-                              pregnancy.progress.isOverdue
+                            className={`h-3 rounded-full transition-all ${pregnancy.progress.isOverdue
                                 ? 'bg-gradient-to-r from-red-400 to-red-600'
                                 : 'bg-gradient-to-r from-pink-400 to-pink-600'
-                            }`}
+                              }`}
                             style={{ width: `${pregnancy.progress.percentComplete}%` }}
                           />
                         </div>
@@ -513,8 +511,8 @@ export default function PregnanciesPage() {
                     </Button>
                   )}
                   {canManage && pregnancy.status === 'ACTIVE' && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => handleUpdateStatus(pregnancy, 'DELIVERED')}
                     >
                       Mark Delivered
@@ -544,10 +542,10 @@ export default function PregnanciesPage() {
       )}
 
       {/* Register Pregnancy Modal */}
-      <Modal 
-        isOpen={showAddModal} 
-        onClose={() => { setShowAddModal(false); resetForm(); }} 
-        title="Register New Pregnancy" 
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => { setShowAddModal(false); resetForm(); }}
+        title="Register New Pregnancy"
         size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -561,9 +559,9 @@ export default function PregnanciesPage() {
               label="Registered Mother *"
               value={formData.motherId}
               onChange={(e) => setFormData({ ...formData, motherId: e.target.value })}
-              options={availableMothers.map(m => ({ 
-                value: m.id, 
-                label: `${m.user.name} (${m.user.email})` 
+              options={availableMothers.map(m => ({
+                value: m.id,
+                label: `${m.user.name} (${m.user.email})`
               }))}
               placeholder="Select a mother..."
               required
@@ -589,7 +587,7 @@ export default function PregnanciesPage() {
                 onChange={(e) => setFormData({ ...formData, lastMenstrualPeriod: e.target.value })}
                 required
               />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Gravida (Total Pregnancies)"
@@ -685,10 +683,10 @@ export default function PregnanciesPage() {
       </Modal>
 
       {/* View Details Modal */}
-      <Modal 
-        isOpen={showViewModal} 
-        onClose={() => { setShowViewModal(false); setSelectedPregnancy(null); }} 
-        title="Pregnancy Details" 
+      <Modal
+        isOpen={showViewModal}
+        onClose={() => { setShowViewModal(false); setSelectedPregnancy(null); }}
+        title="Pregnancy Details"
         size="md"
       >
         {selectedPregnancy && (
@@ -720,11 +718,10 @@ export default function PregnanciesPage() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
                       <div
-                        className={`h-4 rounded-full ${
-                          selectedPregnancy.progress.isOverdue
+                        className={`h-4 rounded-full ${selectedPregnancy.progress.isOverdue
                             ? 'bg-gradient-to-r from-red-400 to-red-600'
                             : 'bg-gradient-to-r from-pink-400 to-pink-600'
-                        }`}
+                          }`}
                         style={{ width: `${selectedPregnancy.progress.percentComplete}%` }}
                       />
                     </div>
@@ -819,10 +816,10 @@ export default function PregnanciesPage() {
       </Modal>
 
       {/* Edit Pregnancy Modal */}
-      <Modal 
-        isOpen={showEditModal} 
-        onClose={() => { setShowEditModal(false); setEditingPregnancy(null); }} 
-        title="Edit Pregnancy Record" 
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => { setShowEditModal(false); setEditingPregnancy(null); }}
+        title="Edit Pregnancy Record"
         size="lg"
       >
         {editingPregnancy && (
@@ -871,7 +868,7 @@ export default function PregnanciesPage() {
                   value={editFormData.lastMenstrualPeriod}
                   onChange={(e) => setEditFormData({ ...editFormData, lastMenstrualPeriod: e.target.value })}
                 />
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Gravida (Total Pregnancies)"

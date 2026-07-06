@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     // 1. Verify authentication
     if (!session || !session.user) {
       return new NextResponse('Unauthorized', { status: 401 });
@@ -35,7 +35,7 @@ export async function GET(
 
     // 3. Security Guardrail: Role-based access control check
     const userRole = session.user.role;
-    
+
     if (userRole === 'MOTHER') {
       // Mothers can only view/download their own documents
       if (session.user.motherId !== document.motherId) {
@@ -54,12 +54,8 @@ export async function GET(
     // 4. Stream file back to the browser
     // Content-Disposition "inline" allows opening natively, "attachment" forces download
     const disposition = req.nextUrl.searchParams.get('download') === 'true' ? 'attachment' : 'inline';
-    
-<<<<<<< HEAD
-    return new NextResponse(Buffer.from(document.fileData), {
-=======
+
     return new NextResponse(Buffer.from(document.fileData) as unknown as BodyInit, {
->>>>>>> 1f53194 (feat: integrate Thriposha management and resolve type errors)
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
