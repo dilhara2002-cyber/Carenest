@@ -579,7 +579,7 @@ export default function MidwivesPage() {
                             variant={midwife.user.isActive ? 'outline' : 'default'}
                             className={cn(
                               "rounded-lg h-9 w-9 p-0 transition-all",
-                              midwife.user.isActive 
+                              midwife.user.isActive
                                 ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-gray-200"
                                 : "bg-emerald-600 hover:bg-emerald-700 text-white"
                             )}
@@ -719,7 +719,7 @@ export default function MidwivesPage() {
             <div className="flex items-center justify-between max-w-md mx-auto relative px-4">
               {/* Connector line */}
               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
-              <div 
+              <div
                 className="absolute top-1/2 left-0 h-0.5 bg-[#2563EB] -translate-y-1/2 z-0 transition-all duration-300"
                 style={{ width: `${((formStep - 1) / 2) * 100}%` }}
               />

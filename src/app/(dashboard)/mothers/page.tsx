@@ -961,8 +961,8 @@ export default function MothersPage() {
                   {selectedMother.needsSpecialAttention ? 'Special Attention' : 'Normal Care'}
                 </p>
                 <p className="text-xs text-amber-700 mt-1">
-                  {selectedMother.needsSpecialAttention 
-                    ? 'Requires midwife discretion visit schedules' 
+                  {selectedMother.needsSpecialAttention
+                    ? 'Requires midwife discretion visit schedules'
                     : 'Standard monthly care visits'}
                 </p>
               </div>
@@ -1140,8 +1140,8 @@ export default function MothersPage() {
                 Close
               </Button>
               {['ADMIN', 'MIDWIFE'].includes(session?.user?.role || '') && (
-                <Button 
-                  variant={selectedMother.needsSpecialAttention ? 'outline' : 'secondary'} 
+                <Button
+                  variant={selectedMother.needsSpecialAttention ? 'outline' : 'secondary'}
                   onClick={() => handleToggleSpecialAttention(selectedMother)}
                   disabled={actionLoading}
                 >

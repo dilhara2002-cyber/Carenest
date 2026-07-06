@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "noImplicitOverride": false,
     "target": "ES2017",
     "lib": [
       "dom",
