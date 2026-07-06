@@ -35,7 +35,6 @@ interface Mother {
   } | null;
   pregnancies?: {
     id: string;
-    status?: string;
     lastMenstrualPeriod?: string | null;
     expectedDeliveryDate?: string | null;
     highRisk?: boolean;

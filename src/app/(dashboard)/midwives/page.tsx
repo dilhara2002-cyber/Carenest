@@ -40,7 +40,6 @@ import {
   AlertTriangle,
   AlertCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { formatDate, cn } from '@/lib/utils';
 
 interface Midwife {
