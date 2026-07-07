@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -37,8 +38,8 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { formatDate, cn } from '@/lib/utils';
 
 interface Midwife {
@@ -160,7 +161,7 @@ export default function MidwivesPage() {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (statusFilter !== 'all') params.append('status', statusFilter);
-      
+
       const res = await fetch(`/api/midwives?${params.toString()}`);
       const data = await res.json();
       setMidwives(data.data || []);
@@ -578,7 +579,7 @@ export default function MidwivesPage() {
                             variant={midwife.user.isActive ? 'outline' : 'default'}
                             className={cn(
                               "rounded-lg h-9 w-9 p-0 transition-all",
-                              midwife.user.isActive 
+                              midwife.user.isActive
                                 ? "hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-gray-200"
                                 : "bg-emerald-600 hover:bg-emerald-700 text-white"
                             )}
@@ -616,6 +617,92 @@ export default function MidwivesPage() {
         </CardContent>
       </Card>
 
+      {/* High-Risk Alerts */}
+      <Card className="border-red-100 bg-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-6 w-6 text-red-600 fill-red-600 text-white" />
+              <span className="font-bold text-lg">High-Risk Alerts</span>
+            </span>
+            <Link href="/pregnancies" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+              View All
+            </Link>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Elena Adams Alert */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-red-50/30 border border-red-100/80 rounded-2xl gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-red-200">
+                <img
+                  src="/avatars/dilini.png"
+                  alt="Dilini Perera"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800">Dilini Perera</span>
+                  <span className="text-xs text-slate-400 font-medium">32 weeks</span>
+                </div>
+                <p className="text-sm font-bold text-red-600 mt-1">Elevated Blood Pressure (145/92)</p>
+                <p className="text-xs text-slate-500 mt-0.5">Recorded 2 hours ago via home monitor</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end md:self-center">
+              <button
+                onClick={() => window.open('tel:+94771234567')}
+                className="px-5 py-2 border border-slate-200 rounded-full text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Call
+              </button>
+              <Link
+                href="/pregnancies"
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-semibold shadow-sm transition-colors"
+              >
+                Review Record
+              </Link>
+            </div>
+          </div>
+
+          {/* Maria Wong Alert */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-amber-50/30 border border-amber-100/80 rounded-2xl gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border border-amber-200">
+                <img
+                  src="/avatars/sanduni.png"
+                  alt="Sanduni Fernando"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800">Sanduni Fernando</span>
+                  <span className="text-xs text-slate-400 font-medium">28 weeks</span>
+                </div>
+                <p className="text-sm font-bold text-amber-600 mt-1">Missed Gestational Diabetes Screening</p>
+                <p className="text-xs text-slate-500 mt-0.5">Overdue by 3 days</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end md:self-center">
+              <Link
+                href="/chat"
+                className="px-5 py-2 border border-slate-200 rounded-full text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Message
+              </Link>
+              <Link
+                href="/visits"
+                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-full text-sm font-semibold shadow-sm transition-colors"
+              >
+                Reschedule
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Register Midwife Modal */}
       <Modal
         isOpen={showRegisterModal}
@@ -632,7 +719,7 @@ export default function MidwivesPage() {
             <div className="flex items-center justify-between max-w-md mx-auto relative px-4">
               {/* Connector line */}
               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
-              <div 
+              <div
                 className="absolute top-1/2 left-0 h-0.5 bg-[#2563EB] -translate-y-1/2 z-0 transition-all duration-300"
                 style={{ width: `${((formStep - 1) / 2) * 100}%` }}
               />
