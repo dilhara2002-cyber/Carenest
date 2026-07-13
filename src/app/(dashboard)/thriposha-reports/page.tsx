@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Select, Badge } from '@/components/ui';
 import {
-  Package, TrendingUp, Users, BarChart3, ArrowRight, Plus, Trash2,
+  Package, TrendingUp, Users, BarChart3, ArrowRight, Plus, Trash2, Pencil, X, Check,
   AlertCircle, Calendar, Shield, Activity, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import {
@@ -96,6 +96,20 @@ export default function ThriposhaReportsPage() {
   const [stockFormLoading, setStockFormLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Edit stock state
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [editStockForm, setEditStockForm] = useState({
+    quantity: '',
+    packetType: 'YELLOW',
+    batchNumber: '',
+    supplier: '',
+    expiryDate: '',
+    receivedDate: '',
+    notes: '',
+  });
+  const [editStockLoading, setEditStockLoading] = useState(false);
+  const [editError, setEditError] = useState('');
+
   useEffect(() => {
     fetchReportData();
   }, [selectedMonth, selectedYear]);
@@ -180,6 +194,68 @@ export default function ThriposhaReportsPage() {
       }
     } catch (err) {
       console.error('Error deleting stock:', err);
+    }
+  };
+
+  const handleStartEdit = (record: StockRecord) => {
+    setEditingStockId(record.id);
+    setEditError('');
+    setEditStockForm({
+      quantity: String(Number(record.quantity)),
+      packetType: record.packetType,
+      batchNumber: record.batchNumber || '',
+      supplier: record.supplier || '',
+      expiryDate: record.expiryDate ? new Date(record.expiryDate).toISOString().split('T')[0] : '',
+      receivedDate: new Date(record.receivedDate).toISOString().split('T')[0],
+      notes: record.notes || '',
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStockId(null);
+    setEditError('');
+  };
+
+  const handleEditStock = async () => {
+    if (!editingStockId) return;
+
+    const qty = parseInt(editStockForm.quantity, 10);
+    if (!editStockForm.quantity || isNaN(qty) || qty <= 0 || Number(editStockForm.quantity) !== qty) {
+      setEditError('Please enter a valid whole number for quantity');
+      return;
+    }
+
+    setEditStockLoading(true);
+    setEditError('');
+
+    try {
+      const res = await fetch('/api/thriposha/stock', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingStockId,
+          quantity: qty,
+          packetType: editStockForm.packetType,
+          batchNumber: editStockForm.batchNumber || null,
+          supplier: editStockForm.supplier || null,
+          expiryDate: editStockForm.expiryDate || null,
+          receivedDate: editStockForm.receivedDate || null,
+          notes: editStockForm.notes || null,
+        }),
+      });
+
+      if (res.ok) {
+        setEditingStockId(null);
+        await fetchStockData();
+        await fetchReportData();
+      } else {
+        const data = await res.json();
+        setEditError(data.error || 'Failed to update stock');
+      }
+    } catch (err) {
+      setEditError('Error updating stock');
+    } finally {
+      setEditStockLoading(false);
     }
   };
 
@@ -762,6 +838,116 @@ export default function ThriposhaReportsPage() {
                       RED:    { emoji: '🔴', label: 'Red',    bg: 'bg-red-50',    text: 'text-[#EF4444]', border: 'border-red-200' },
                     };
                     const cc = colorConfig[record.packetType] || colorConfig.YELLOW;
+                    const isEditing = editingStockId === record.id;
+
+                    if (isEditing) {
+                      return (
+                        <tr key={record.id} className="bg-blue-50/50">
+                          <td colSpan={8} className="px-6 py-4">
+                            {editError && (
+                              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-3 mb-3">
+                                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                                <p className="text-sm text-red-700">{editError}</p>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              <div>
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Packet Color</label>
+                                <select
+                                  value={editStockForm.packetType}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, packetType: e.target.value })}
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                                >
+                                  <option value="YELLOW">🟡 Yellow</option>
+                                  <option value="ORANGE">🟠 Orange</option>
+                                  <option value="RED">🔴 Red</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Quantity (Packets)</label>
+                                <input
+                                  type="number"
+                                  step="1"
+                                  min="1"
+                                  value={editStockForm.quantity}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, quantity: e.target.value })}
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Batch Number</label>
+                                <input
+                                  type="text"
+                                  value={editStockForm.batchNumber}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, batchNumber: e.target.value })}
+                                  placeholder="Optional"
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Supplier</label>
+                                <input
+                                  type="text"
+                                  value={editStockForm.supplier}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, supplier: e.target.value })}
+                                  placeholder="Optional"
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Received Date</label>
+                                <input
+                                  type="date"
+                                  value={editStockForm.receivedDate}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, receivedDate: e.target.value })}
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Expiry Date</label>
+                                <input
+                                  type="date"
+                                  value={editStockForm.expiryDate}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, expiryDate: e.target.value })}
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+                              <div className="md:col-span-2">
+                                <label className="block text-[10px] font-semibold text-gray-500 mb-1 uppercase tracking-wider">Notes</label>
+                                <input
+                                  type="text"
+                                  value={editStockForm.notes}
+                                  onChange={(e) => setEditStockForm({ ...editStockForm, notes: e.target.value })}
+                                  placeholder="Optional notes"
+                                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-end gap-2 mt-3">
+                              <button
+                                onClick={handleCancelEdit}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleEditStock}
+                                disabled={editStockLoading}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#2563EB] rounded-lg hover:bg-[#1D4ED8] transition-all disabled:opacity-50"
+                              >
+                                {editStockLoading ? (
+                                  <span className="animate-spin inline-block h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+                                ) : (
+                                  <Check className="h-3.5 w-3.5" />
+                                )}
+                                Save Changes
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
 
                     return (
                       <tr key={record.id} className="hover:bg-[#F9FAFB] transition-colors">
@@ -795,13 +981,22 @@ export default function ThriposhaReportsPage() {
                           }
                         </td>
                         <td className="px-6 py-3.5 text-center">
-                          <button
-                            onClick={() => handleDeleteStock(record.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                            title="Delete record"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              onClick={() => handleStartEdit(record)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                              title="Edit record"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteStock(record.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                              title="Delete record"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
