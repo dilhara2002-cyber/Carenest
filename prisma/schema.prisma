@@ -192,6 +192,7 @@ model Child {
   // Relations
   mother        Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
   growthRecords GrowthRecord[]
+  childGrowthRecords ChildGrowthRecord[]
   vaccinations  Vaccination[]
   visits        Visit[]   // Postnatal visits linked to this child
   thriposhaDistributions ThriposhaDistribution[]
@@ -224,6 +225,24 @@ model GrowthRecord {
   child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@map("growth_records")
+}
+
+// Child Growth Record - tracks ongoing growth measurements over time (weight, length/height, head circumference)
+model ChildGrowthRecord {
+  id                  String   @id @default(cuid())
+  childId             String
+  recordDate          DateTime @default(now())
+  weightKg            Decimal  @db.Decimal(5, 2) // weight in kg
+  lengthCm            Decimal  @db.Decimal(5, 2) // length/height in cm
+  headCircumferenceCm Decimal  @db.Decimal(5, 2) // head circumference in cm
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  child               Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("child_growth_records")
 }
 
 // Visit Table

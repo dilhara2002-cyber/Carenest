@@ -91,6 +91,50 @@ export async function GET(
       zScoreBmi: r.zScoreBmi != null ? Number(r.zScoreBmi) : null,
     }));
 
+    // Fetch and merge the ongoing ChildGrowthRecord entries
+    const childGrowthRecords = await prisma.childGrowthRecord.findMany({
+      where: { childId },
+      orderBy: { recordDate: 'asc' },
+    });
+
+    const ongoingRecords = childGrowthRecords.map((r) => {
+      const computed = computeGrowthMetrics({
+        birthDate: child.birthDate,
+        recordDate: r.recordDate,
+        gender: child.gender as 'MALE' | 'FEMALE',
+        weightKg: Number(r.weightKg),
+        heightCm: Number(r.lengthCm),
+        isPreterm: child.isPreterm,
+        gestationalAgeWeeks: child.gestationalAgeWeeks,
+      });
+
+      return {
+        id: r.id,
+        recordDate: r.recordDate.toISOString(),
+        ageMonths: computed.ageMonths,
+        correctedAgeMonths: computed.correctedAgeMonths,
+        weight: Number(r.weightKg),
+        height: Number(r.lengthCm),
+        bmi: computed.bmi,
+        headCircumference: Number(r.headCircumferenceCm),
+        weightStatus: computed.weightStatus?.status ?? null,
+        heightStatus: computed.heightStatus?.status ?? null,
+        bmiStatus: computed.bmiStatus?.status ?? null,
+        zScoreWeight: computed.weightStatus?.zScore ?? null,
+        zScoreHeight: computed.heightStatus?.zScore ?? null,
+        zScoreBmi: computed.bmiStatus?.zScore ?? null,
+        notes: r.notes,
+      };
+    });
+
+    // Merge birth records (GrowthRecord) and ongoing logs (ChildGrowthRecord), sort chronologically
+    const allRecords = [
+      ...records.map(r => ({ ...r, recordDate: new Date(r.recordDate).toISOString() })),
+      ...ongoingRecords,
+    ].sort(
+      (a, b) => new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime()
+    );
+
     return NextResponse.json({
       data: {
         child: {
@@ -103,7 +147,7 @@ export async function GET(
           birthWeight: child.birthWeight != null ? Number(child.birthWeight) : null,
           birthHeight: child.birthHeight != null ? Number(child.birthHeight) : null,
         },
-        records,
+        records: allRecords,
         referenceBands,
       },
     });
@@ -287,7 +331,8 @@ export async function DELETE(
     }
 
     // Verify the record exists and belongs to this child
-    const existingRecord = await prisma.growthRecord.findFirst({
+    let isOngoingRecord = false;
+    let existingRecord = await prisma.growthRecord.findFirst({
       where: {
         id: recordId,
         childId,
@@ -295,10 +340,19 @@ export async function DELETE(
     });
 
     if (!existingRecord) {
-      return NextResponse.json(
-        { error: 'Growth record not found for this child' },
-        { status: 404 },
-      );
+      const existingOngoing = await prisma.childGrowthRecord.findFirst({
+        where: {
+          id: recordId,
+          childId,
+        },
+      });
+      if (!existingOngoing) {
+        return NextResponse.json(
+          { error: 'Growth record not found for this child' },
+          { status: 404 },
+        );
+      }
+      isOngoingRecord = true;
     }
 
     // For MIDWIFE, verify they have permission to manage this child
@@ -320,16 +374,22 @@ export async function DELETE(
       }
     }
 
-    await prisma.growthRecord.delete({
-      where: { id: recordId },
-    });
+    if (isOngoingRecord) {
+      await prisma.childGrowthRecord.delete({
+        where: { id: recordId },
+      });
+    } else {
+      await prisma.growthRecord.delete({
+        where: { id: recordId },
+      });
+    }
 
     // Create audit log
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: 'GROWTH_RECORD_DELETED',
-        entity: 'GrowthRecord',
+        entity: isOngoingRecord ? 'ChildGrowthRecord' : 'GrowthRecord',
         entityId: recordId,
         details: `Growth record deleted for child ${childId}`,
       },
