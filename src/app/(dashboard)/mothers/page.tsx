@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Textarea, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
-import { Users, Plus, Search, Eye, Edit, UserCheck, Trash2, ToggleLeft, ToggleRight, Heart, Upload } from 'lucide-react';
+import { Users, Plus, Search, Eye, Edit, UserCheck, Trash2, ToggleLeft, ToggleRight, Heart, Upload, TrendingUp } from 'lucide-react';
 import { formatDate, bloodGroups, getPregnancyProgress } from '@/lib/utils';
 
 interface Mother {
@@ -498,6 +498,14 @@ export default function MothersPage() {
                       onClick={() => openEditModal(mother)}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      title="Growth Records"
+                      onClick={() => router.push(`/mother-growth?motherId=${mother.id}`)}
+                    >
+                      <TrendingUp className="h-4 w-4 text-teal-600" />
                     </Button>
                     {isAdmin && (
                       <>

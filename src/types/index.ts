@@ -215,3 +215,32 @@ export interface DocumentTypeResponse extends ApiResponse<DocumentType> {
 export interface DocumentTypeListResponse extends ApiResponse<DocumentType[]> {
   data: DocumentType[];
 }
+
+// ============================================================
+// MOTHER GROWTH TRACKING TYPES
+// ============================================================
+
+export interface MotherGrowthRecordData {
+  id: string;
+  motherId: string;
+  recordedById: string;
+  recordDate: string | Date;
+  weightKg: number | string;
+  sfhCm: number | string | null;
+  notes: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  mother?: {
+    id: string;
+    user: {
+      name: string;
+      email: string;
+    };
+  };
+  recordedBy?: {
+    id: string;
+    user: {
+      name: string;
+    };
+  };
+}

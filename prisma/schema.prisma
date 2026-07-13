@@ -102,7 +102,7 @@ model Mother {
   mohRegistrationNumber String?   // H 502 registry serial number (e.g., 2026/MAH/102)
   mohRegNumber          String    @default("")
   nicNumber             String    @default("")
- // height                Decimal?  @db.Decimal(5, 2) // in cm
+  height                Decimal?  @db.Decimal(5, 2) // in cm
   assignedMidwifeId     String?
   needsSpecialAttention Boolean   @default(false) // Midwife discretion: requires more frequent visits
   latitude              Decimal?  @db.Decimal(10, 7)
@@ -122,6 +122,7 @@ model Mother {
   aiCareRecords         AICareRecord[]
   documents             Document[]
   thriposhaDistributions ThriposhaDistribution[]
+  motherGrowthRecords   MotherGrowthRecord[]
 
   @@map("mothers")
 }
@@ -143,6 +144,7 @@ model Midwife {
   assignedMothers Mother[]
   visits          Visit[]
   thriposhaDistributions ThriposhaDistribution[]
+  motherGrowthRecords    MotherGrowthRecord[]
 
   @@map("midwives")
 }
@@ -420,4 +422,24 @@ model ThriposhaStock {
   updatedAt     DateTime  @updatedAt
 
   @@map("thriposha_stock")
+}
+
+// Mother Growth Record — tracks weight and SFH (belly growth) during pregnancy
+model MotherGrowthRecord {
+  id           String   @id @default(cuid())
+  motherId     String
+  recordedById String   // midwifeId of the staff member who recorded this
+  recordDate   DateTime @default(now())
+  weightKg     Decimal  @db.Decimal(5, 2) // e.g. 65.40 kg
+  sfhCm        Decimal? @db.Decimal(5, 2) // Symphysis-Fundal Height in cm (belly growth)
+  notes        String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  mother       Mother   @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  recordedBy   Midwife  @relation(fields: [recordedById], references: [id])
+
+  @@map("mother_growth_records")
 }
