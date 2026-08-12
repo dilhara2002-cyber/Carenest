@@ -102,7 +102,7 @@ model Mother {
   mohRegistrationNumber String?   // H 502 registry serial number (e.g., 2026/MAH/102)
   mohRegNumber          String    @default("")
   nicNumber             String    @default("")
- // height                Decimal?  @db.Decimal(5, 2) // in cm
+  height                Decimal?  @db.Decimal(5, 2) // in cm
   assignedMidwifeId     String?
   needsSpecialAttention Boolean   @default(false) // Midwife discretion: requires more frequent visits
   latitude              Decimal?  @db.Decimal(10, 7)
