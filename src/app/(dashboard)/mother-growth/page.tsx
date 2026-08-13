@@ -33,6 +33,7 @@ import {
   User,
   ChevronRight,
   Users,
+  AlertTriangle,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import type { MotherGrowthRecordData } from '@/types';
@@ -55,6 +56,7 @@ export default function MotherGrowthPage() {
   const router = useRouter();
 
   const [records, setRecords] = useState<MotherGrowthRecordData[]>([]);
+  const [allRecords, setAllRecords] = useState<MotherGrowthRecordData[]>([]);
   const [mothers, setMothers] = useState<Mother[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -88,11 +90,18 @@ export default function MotherGrowthPage() {
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (filterMotherId) params.set('motherId', filterMotherId);
-      const res = await fetch(`/api/mother-growth${params.toString() ? `?${params}` : ''}`);
+      // Always fetch all records for admin stats
+      const res = await fetch('/api/mother-growth');
       const data = await res.json();
-      setRecords(data.data || []);
+      const allData = data.data || [];
+      setAllRecords(allData);
+      
+      // Filter records based on selected mother
+      if (filterMotherId) {
+        setRecords(allData.filter((r: MotherGrowthRecordData) => r.motherId === filterMotherId));
+      } else {
+        setRecords(allData);
+      }
     } catch (err) {
       console.error('Failed to fetch growth records:', err);
     } finally {
@@ -199,15 +208,43 @@ export default function MotherGrowthPage() {
     return name.includes(searchTerm.toLowerCase());
   });
 
-  const avgWeight =
-    records.length > 0
-      ? (
-          records.reduce((sum, r) => sum + parseFloat(String(r.weightKg)), 0) /
-          records.length
-        ).toFixed(1)
-      : '—';
+  // Get selected mother's records only
+  const selectedMotherRecords = filterMotherId 
+    ? records.filter(r => r.motherId === filterMotherId)
+    : [];
 
-  const latestSfh = records.find((r) => r.sfhCm != null)?.sfhCm;
+  // Sort selected mother's records by date for calculations
+  const sortedMotherRecords = [...selectedMotherRecords].sort(
+    (a, b) => new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime()
+  );
+
+  // Calculate stats for selected mother only
+  const latestRecord = sortedMotherRecords[sortedMotherRecords.length - 1];
+  const firstRecord = sortedMotherRecords[0];
+  
+  const latestWeight = latestRecord ? parseFloat(String(latestRecord.weightKg)).toFixed(1) : null;
+  const weightChange = sortedMotherRecords.length >= 2
+    ? (parseFloat(String(latestRecord.weightKg)) - parseFloat(String(firstRecord.weightKg))).toFixed(1)
+    : null;
+  const latestSfh = latestRecord?.sfhCm != null ? parseFloat(String(latestRecord.sfhCm)).toFixed(1) : null;
+
+  // System-level aggregate stats for Admin (when no mother selected)
+  const totalRecordsThisMonth = allRecords.filter(r => {
+    const recordDate = new Date(r.recordDate);
+    const now = new Date();
+    return recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const mothersWithoutRecentRecords = mothers.filter(mother => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const hasRecentRecord = allRecords.some(r => 
+      r.motherId === mother.id && new Date(r.recordDate) >= thirtyDaysAgo
+    );
+    return !hasRecentRecord;
+  }).length;
+
+  const recordsMissingSfh = allRecords.filter(r => r.sfhCm == null).length;
 
   const resetForm = () => {
     setFormData(emptyForm);
@@ -246,43 +283,98 @@ export default function MotherGrowthPage() {
       </div>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-full bg-teal-100 p-3">
-              <Activity className="h-6 w-6 text-teal-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Records</p>
-              <p className="text-2xl font-bold text-gray-900">{records.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-full bg-purple-100 p-3">
-              <Weight className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Avg Weight</p>
-              <p className="text-2xl font-bold text-gray-900">{avgWeight} kg</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="rounded-full bg-rose-100 p-3">
-              <TrendingUp className="h-6 w-6 text-rose-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Latest SFH</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {latestSfh != null ? `${latestSfh} cm` : '—'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {!filterMotherId && session?.user?.role === 'ADMIN' ? (
+        // Admin: Show system-level aggregate stats when no mother selected
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-teal-100 p-3">
+                <Activity className="h-6 w-6 text-teal-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Records This Month</p>
+                <p className="text-2xl font-bold text-gray-900">{totalRecordsThisMonth}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-orange-100 p-3">
+                <AlertTriangle className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">No Record (30+ Days)</p>
+                <p className="text-2xl font-bold text-gray-900">{mothersWithoutRecentRecords}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-rose-100 p-3">
+                <TrendingUp className="h-6 w-6 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Records Missing SFH</p>
+                <p className="text-2xl font-bold text-gray-900">{recordsMissingSfh}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : filterMotherId ? (
+        // Mother selected: Show per-mother stats
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-teal-100 p-3">
+                <Activity className="h-6 w-6 text-teal-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Total Records</p>
+                <p className="text-2xl font-bold text-gray-900">{selectedMotherRecords.length}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-purple-100 p-3">
+                <Weight className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Latest Weight</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {latestWeight ? `${latestWeight} kg` : '—'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-blue-100 p-3">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Weight Change</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {weightChange ? `${Number(weightChange) >= 0 ? '+' : ''}${weightChange} kg` : '—'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="rounded-full bg-rose-100 p-3">
+                <TrendingUp className="h-6 w-6 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Latest SFH</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {latestSfh ? `${latestSfh} cm` : '—'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
 
       {/* Filters */}
       <Card>
@@ -321,16 +413,36 @@ export default function MotherGrowthPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-teal-500" />
-            Growth Records ({filtered.length})
+            Growth Records ({filterMotherId ? filtered.length : 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {!filterMotherId ? (
+            // Empty state: No mother selected
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="rounded-full bg-teal-50 p-4 mb-4">
+                <User className="h-12 w-12 text-teal-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Select a Mother to View Growth History
+              </h3>
+              <p className="text-gray-500 max-w-md mb-6">
+                Use the "Filter by mother" dropdown above to select a specific mother and view her weight and SFH measurements over time.
+              </p>
+              <p className="text-sm text-gray-400">
+                Clinical measurements should only be viewed in the context of individual patient history.
+              </p>
+            </div>
+          ) : loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600" />
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-gray-500 py-10">No growth records found.</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Activity className="h-12 w-12 text-gray-300 mb-3" />
+              <p className="text-gray-500 font-medium">No growth records found for this mother.</p>
+              <p className="text-sm text-gray-400 mt-1">Add a record to start tracking growth.</p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
