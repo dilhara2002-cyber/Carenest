@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
     const isAdmin = session.user.role === 'ADMIN';
     const normalizedAssignedMidwifeId = isAdmin
       ? (assignedMidwifeId || null)
-      : (assignedMidwifeId || session.user.midwifeId || null);
+      : null; // Admin must assign a midwife later
 
     // Create user first
     const bcrypt = await import('bcryptjs');
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
         role: 'MOTHER',
         phone,
         address,
-        isActive: Boolean(normalizedAssignedMidwifeId),
+        isActive: isAdmin ? true : false, // Admin must approve later if created by midwife
       },
     });
 
