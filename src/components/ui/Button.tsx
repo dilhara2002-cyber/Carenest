@@ -17,9 +17,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       default: 'bg-teal-600 text-white hover:bg-teal-700 focus-visible:ring-teal-500',
       destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
-      outline: 'border border-gray-300 bg-white hover:bg-gray-50 focus-visible:ring-teal-500',
+      outline: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus-visible:ring-teal-500',
       secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500',
-      ghost: 'hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-500',
+      ghost: 'text-gray-900 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-500',
       link: 'text-teal-600 underline-offset-4 hover:underline focus-visible:ring-teal-500',
     };
 

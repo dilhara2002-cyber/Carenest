@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Textarea } from '@/components/ui';
 import { Syringe, Plus, CheckCircle, Clock, AlertCircle, Search, Filter, X, RefreshCw, XCircle } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate } from '@/lib/utils';
 
 interface Vaccination {
@@ -345,28 +346,25 @@ export default function VaccinationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vaccination Tracking</h1>
-          <p className="text-gray-500">
-            {isAdmin ? 'View and manage all vaccinations' : 
-             isMidwife ? 'Manage vaccinations for your assigned mothers' :
-             'View your vaccination schedule'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="font-semibold" onClick={() => fetchVaccinations()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {!isMother && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Vaccination
+      <DashboardHero
+        title="Vaccination Tracking"
+        subtitle={isAdmin ? 'View and manage all vaccinations' : isMidwife ? 'Manage vaccinations for your assigned mothers' : 'View your vaccination schedule'}
+        pillLabel="Vaccinations"
+        actions={(
+          <>
+            <Button variant="outline" className="font-semibold" onClick={() => fetchVaccinations()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
             </Button>
-          )}
-        </div>
-      </div>
+            {!isMother && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Vaccination
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

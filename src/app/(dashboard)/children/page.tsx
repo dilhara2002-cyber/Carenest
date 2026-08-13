@@ -31,6 +31,7 @@ import {
   Syringe,
   AlertTriangle,
 } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate } from '@/lib/utils';
 import { getStatusStyles } from '@/lib/growthUtils';
 
@@ -433,27 +434,25 @@ export default function ChildrenPage() {
 
   return (
     <div className="space-y-6 text-gray-900 antialiased">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Children Management</h1>
-          <p className="text-gray-700">
-            {isMother ? "Track your children's health and growth" : 'Register and manage children records'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchChildren}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {canManage && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Child
+      <DashboardHero
+        title="Children Management"
+        subtitle={isMother ? "Track your children's health and growth" : 'Register and manage children records'}
+        pillLabel="Children"
+        actions={(
+          <>
+            <Button variant="outline" onClick={fetchChildren}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
             </Button>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Child
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {/* Stats */}
       {canManage && (
