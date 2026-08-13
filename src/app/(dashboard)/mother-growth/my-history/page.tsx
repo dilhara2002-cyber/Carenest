@@ -110,21 +110,23 @@ function LineChart({ data, color, label, unit }: LineChartProps) {
         ))}
 
         {/* X-axis labels (first and last only to avoid clutter) */}
-        {[0, data.length - 1].map((i) => (
-          <text
-            key={i}
-            x={xScale(i)}
-            y={H - 6}
-            textAnchor={i === 0 ? 'start' : 'end'}
-            className="fill-gray-400"
-            style={{ fontSize: '9px' }}
-          >
-            {new Date(data[i].date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-            })}
-          </text>
-        ))}
+        {[0, data.length - 1]
+          .filter((i, idx, arr) => arr.indexOf(i) === idx) // Remove duplicates when only 1 data point
+          .map((i) => (
+            <text
+              key={`x-label-${i}`}
+              x={xScale(i)}
+              y={H - 6}
+              textAnchor={i === 0 ? 'start' : 'end'}
+              className="fill-gray-400"
+              style={{ fontSize: '9px' }}
+            >
+              {new Date(data[i].date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
+            </text>
+          ))}
       </svg>
     </div>
   );
