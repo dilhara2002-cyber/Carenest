@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Textarea } from '@/components/ui';
 import { Heart, Plus, Edit, AlertTriangle, User, Calendar, RefreshCw, Search, Eye, Trash2 } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate, getPregnancyTrimester } from '@/lib/utils';
 import type { PregnancyProgress } from '@/lib/utils';
 
@@ -266,27 +267,25 @@ export default function PregnanciesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pregnancy Tracking</h1>
-          <p className="text-gray-500">
-            {isMother ? 'Monitor your pregnancy progress' : 'Monitor and manage pregnancy records'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="font-semibold" onClick={fetchPregnancies}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {canManage && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Pregnancy
+      <DashboardHero
+        title="Pregnancy Tracking"
+        subtitle={isMother ? 'Monitor your pregnancy progress' : 'Monitor and manage pregnancy records'}
+        pillLabel="Pregnancy"
+        actions={(
+          <>
+            <Button variant="outline" className="font-semibold" onClick={fetchPregnancies}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
             </Button>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Pregnancy
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {/* Stats (for Admin/Midwife) */}
       {canManage && (

@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Select } from '@/components/ui';
-import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle } from 'lucide-react';
+
+import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle, Upload } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
+
 
 export default function ReportsPage() {
   const { data: session } = useSession();
@@ -24,12 +27,34 @@ export default function ReportsPage() {
   const [docTypeLoading, setDocTypeLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
-  // Fetch document types
+  // Patient Documents States
+  const [mothers, setMothers] = useState<{id: string, user: {name: string, email: string}}[]>([]);
+  const [selectedMotherId, setSelectedMotherId] = useState('');
+  const [motherDocuments, setMotherDocuments] = useState<any[]>([]);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Fetch initial data
   useEffect(() => {
-    if (session?.user?.role === 'ADMIN') {
+    fetchMothers();
+    if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MIDWIFE') {
       fetchDocumentTypes();
     }
   }, [session]);
+
+  const fetchMothers = async () => {
+    try {
+      const res = await fetch('/api/mothers?pageSize=100');
+      if (res.ok) {
+        const data = await res.json();
+        setMothers(data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to load mothers');
+    }
+  };
 
   const fetchDocumentTypes = async () => {
     try {
@@ -92,6 +117,92 @@ export default function ReportsPage() {
     }
   };
 
+  // Patient Documents Handlers
+  const fetchMotherDocuments = async (motherId: string) => {
+    try {
+      const res = await fetch(`/api/documents/${motherId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMotherDocuments(data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to load documents');
+    }
+  };
+
+  useEffect(() => {
+    if (selectedMotherId) {
+      fetchMotherDocuments(selectedMotherId);
+    } else {
+      setMotherDocuments([]);
+    }
+  }, [selectedMotherId]);
+
+  const handleUploadDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile || !uploadType || !selectedMotherId) {
+      setError('Please select a patient, file, and document type.');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('documentTypeId', uploadType);
+      formData.append('motherId', selectedMotherId);
+
+      const res = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        setUploadFile(null);
+        setUploadType('');
+        const fileInput = document.getElementById('admin-file-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+        await fetchMotherDocuments(selectedMotherId);
+        alert('Document uploaded successfully!');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to upload document.');
+      }
+    } catch (err) {
+      setError('An error occurred during upload.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeletePatientDocument = async (docId: string) => {
+    if (!selectedMotherId) return;
+    if (!confirm('Are you sure you want to delete this document?')) return;
+
+    setDeletingId(docId);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/documents/${selectedMotherId}?documentId=${docId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        await fetchMotherDocuments(selectedMotherId);
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to delete document.');
+      }
+    } catch (err) {
+      setError('An error occurred while deleting.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const reportTypes = [
     { value: 'mothers', label: 'Mothers Report', icon: Users },
     { value: 'visits', label: 'Visits Report', icon: Calendar },
@@ -132,10 +243,11 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-gray-500">Generate and download system reports</p>
-      </div>
+      <DashboardHero
+        title="Reports"
+        subtitle="Generate and download system reports"
+        pillLabel="Reports"
+      />
 
       {/* Document Type Management - ADMIN Only */}
       {session?.user?.role === 'ADMIN' && (
@@ -283,15 +395,15 @@ export default function ReportsPage() {
                   <div
                     key={report.value}
                     onClick={() => setReportType(report.value)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${reportType === report.value
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors text-gray-900 ${reportType === report.value
                       ? 'border-teal-500 bg-teal-50'
                       : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <Icon className={`h-8 w-8 mb-2 ${reportType === report.value ? 'text-teal-600' : 'text-gray-400'
                       }`} />
-                    <h4 className="font-medium">{report.label}</h4>
-                    <p className="text-sm text-gray-500">
+                    <h4 className="font-medium text-gray-900">{report.label}</h4>
+                    <p className="text-sm text-gray-600">
                       {report.value === 'mothers' && 'List of registered mothers with details'}
                       {report.value === 'visits' && 'Visit history and statistics'}
                       {report.value === 'vaccinations' && 'Vaccination coverage report'}
@@ -317,20 +429,137 @@ export default function ReportsPage() {
               { name: 'Vaccination Report - Q1 2026', date: '2026-03-15', type: 'Vaccinations' },
               { name: 'Mother Registration Report', date: '2026-03-01', type: 'Mothers' },
             ].map((report, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg text-gray-900">
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5 text-gray-400" />
                   <div>
-                    <p className="font-medium">{report.name}</p>
-                    <p className="text-sm text-gray-500">{report.type} • {report.date}</p>
+                    <p className="font-medium text-gray-900">{report.name}</p>
+                    <p className="text-sm text-gray-600">{report.type} • {report.date}</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="text-gray-900">
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Patient Documents Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Patient Documents Management</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left: Upload Form */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Upload Document</h3>
+              <form onSubmit={handleUploadDocument} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-gray-700">Select Patient</label>
+                  <select
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={selectedMotherId}
+                    onChange={(e) => setSelectedMotherId(e.target.value)}
+                  >
+                    <option value="">-- Select Patient --</option>
+                    {mothers.map(m => (
+                      <option key={m.id} value={m.id}>{m.user?.name} ({m.user?.email})</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-gray-700">Document Type</label>
+                  <select
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={uploadType}
+                    onChange={(e) => setUploadType(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>-- Select Type --</option>
+                    {documentTypes.map(type => (
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-gray-700">File (PDF, JPG, PNG)</label>
+                  <input
+                    id="admin-file-upload"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg p-1"
+                    required
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  disabled={uploading || !uploadFile || !uploadType || !selectedMotherId}
+                  className="w-full"
+                >
+                  {uploading ? 'Uploading...' : 'Upload Document'}
+                </Button>
+              </form>
+            </div>
+
+            {/* Right: Existing Documents */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Patient&apos;s Documents</h3>
+              {!selectedMotherId ? (
+                <div className="p-8 text-center border-2 border-dashed rounded-lg text-gray-500">
+                  Select a patient to view their documents.
+                </div>
+              ) : motherDocuments.length === 0 ? (
+                <div className="p-8 text-center border-2 border-dashed rounded-lg text-gray-500">
+                  No documents found for this patient.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                  {motherDocuments.map(doc => (
+                    <div key={doc.id} className="flex flex-col p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2 py-1 rounded">
+                            {doc.documentType.name}
+                          </span>
+                          <p className="font-medium text-gray-900 mt-1 truncate max-w-[200px]" title={doc.fileName}>
+                            {doc.fileName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(doc.uploadedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(doc.fileUrl, '_blank')}
+                          >
+                            View
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeletePatientDocument(doc.id)}
+                            disabled={deletingId === doc.id}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-gray-200"
+                          >
+                            {deletingId === doc.id ? '...' : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

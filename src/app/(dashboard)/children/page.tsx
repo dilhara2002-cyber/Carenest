@@ -31,6 +31,7 @@ import {
   Syringe,
   AlertTriangle,
 } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate } from '@/lib/utils';
 import { getStatusStyles } from '@/lib/growthUtils';
 
@@ -433,27 +434,25 @@ export default function ChildrenPage() {
 
   return (
     <div className="space-y-6 text-gray-900 antialiased">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Children Management</h1>
-          <p className="text-gray-700">
-            {isMother ? "Track your children's health and growth" : 'Register and manage children records'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="font-semibold" onClick={fetchChildren}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {canManage && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Child
+      <DashboardHero
+        title="Children Management"
+        subtitle={isMother ? "Track your children's health and growth" : 'Register and manage children records'}
+        pillLabel="Children"
+        actions={(
+          <>
+            <Button variant="outline" onClick={fetchChildren}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
             </Button>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Child
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {/* Stats */}
       {canManage && (
@@ -501,13 +500,13 @@ export default function ChildrenPage() {
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search by child or mother name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
               </div>
