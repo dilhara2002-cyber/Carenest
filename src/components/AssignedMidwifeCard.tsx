@@ -58,13 +58,13 @@ function MidwifeAvatar({
       <img
         src={profileImage}
         alt={name}
-        className="h-14 w-14 rounded-full object-cover ring-2 ring-teal-100"
+        className="h-14 w-14 rounded-full object-cover ring-2 ring-blue-100"
       />
     );
   }
 
   return (
-    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center ring-2 ring-teal-100 shrink-0">
+    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center ring-2 ring-blue-100 shrink-0">
       <span className="text-white text-lg font-bold">{initials}</span>
     </div>
   );
@@ -118,8 +118,8 @@ export default function AssignedMidwifeCard({ midwife }: AssignedMidwifeCardProp
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <div className="p-1.5 bg-teal-100 rounded-lg">
-              <User className="h-5 w-5 text-teal-600" />
+            <div className="p-1.5 bg-blue-100 rounded-lg">
+              <User className="h-5 w-5 text-blue-600" />
             </div>
             My Midwife
           </CardTitle>
@@ -156,7 +156,7 @@ export default function AssignedMidwifeCard({ midwife }: AssignedMidwifeCardProp
                       {midwife.user.isActive ? 'Available' : 'Unavailable'}
                     </span>
                   </div>
-                  <p className="text-sm text-teal-600 font-medium mt-0.5">
+                  <p className="text-sm text-blue-600 font-medium mt-0.5">
                     {midwife.specialization ?? 'Midwife'}
                   </p>
                   {midwife.licenseNumber && (
@@ -201,7 +201,7 @@ export default function AssignedMidwifeCard({ midwife }: AssignedMidwifeCardProp
               <Link href="/chat">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 >
                   <MessageCircle className="h-4 w-4" />
                   Message

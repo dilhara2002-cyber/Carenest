@@ -156,7 +156,7 @@ export function Header() {
       case 'ALERT':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       default:
-        return <Info className="h-4 w-4 text-teal-500" />;
+        return <Info className="h-4 w-4 text-blue-500" />;
     }
   };
 
@@ -170,7 +170,7 @@ export function Header() {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -197,7 +197,7 @@ export function Header() {
                 <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                       {unreadCount} new
                     </span>
                   )}
@@ -211,7 +211,7 @@ export function Header() {
                         onClick={() => handleNotificationClick(notification)}
                         className={`p-3 border-b cursor-pointer transition-colors ${
                           notification.status === 'UNREAD' 
-                            ? 'bg-teal-50 hover:bg-teal-100' 
+                            ? 'bg-blue-50/70 hover:bg-blue-100/70' 
                             : 'hover:bg-gray-50'
                         }`}
                       >
@@ -225,7 +225,7 @@ export function Header() {
                                 {notification.title}
                               </p>
                               {notification.status === 'UNREAD' && (
-                                <span className="w-2 h-2 bg-teal-500 rounded-full flex-shrink-0" />
+                                <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
                               )}
                             </div>
                             <p className="text-xs text-gray-500 truncate mt-0.5">
@@ -252,7 +252,7 @@ export function Header() {
                 <Link
                   href="/notifications"
                   onClick={() => setShowDropdown(false)}
-                  className="block p-3 text-center text-sm text-teal-600 hover:bg-gray-50 border-t font-medium"
+                  className="block p-3 text-center text-sm text-blue-600 hover:bg-gray-50 border-t font-semibold"
                 >
                   View All Notifications
                 </Link>
@@ -266,8 +266,8 @@ export function Header() {
               <p className="text-sm font-medium text-gray-900">{session?.user?.name}</p>
               <p className="text-xs text-gray-500">{session?.user?.role}</p>
             </div>
-            <div className="h-9 w-9 rounded-full bg-teal-100 flex items-center justify-center">
-              <span className="text-teal-700 font-medium">
+            <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-blue-700 font-medium">
                 {session?.user?.name?.charAt(0) || 'U'}
               </span>
             </div>
@@ -279,14 +279,14 @@ export function Header() {
       <Modal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} size="lg">
         {profileLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
           </div>
         ) : motherProfile ? (
           <div className="space-y-6">
             {/* Avatar and Name Header */}
             <div className="flex flex-col items-center space-y-3">
-              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center border-2 border-teal-300">
-                <span className="text-teal-700 font-bold text-3xl">
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border-2 border-blue-300">
+                <span className="text-blue-700 font-bold text-3xl">
                   {motherProfile.user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -298,10 +298,11 @@ export function Header() {
 
             {/* MOH Registration Number - Prominent Badge */}
             {motherProfile.mohRegistrationNumber && (
-              <div className="bg-teal-50 border-2 border-teal-200 p-4 rounded-lg text-center">
-                <p className="text-xs font-semibold text-teal-700 uppercase tracking-widest mb-2">MOH Registration Number</p>
-                <p className="text-2xl font-bold text-teal-900">{motherProfile.mohRegistrationNumber}</p>
-                <p className="text-xs text-teal-600 mt-2">H 502 Registry Serial</p>
+              <div className="bg-blue-50/70 border-2 border-blue-100 p-4 rounded-lg text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl from-[#2563EB]/10 to-transparent rounded-bl-full pointer-events-none" />
+                <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest mb-2">MOH Registration Number</p>
+                <p className="text-2xl font-bold text-blue-900">{motherProfile.mohRegistrationNumber}</p>
+                <p className="text-xs text-blue-500 mt-2">H 502 Registry Serial</p>
               </div>
             )}
 
@@ -364,13 +365,13 @@ export function Header() {
             <div className="flex gap-3 border-t pt-4">
               <button
                 onClick={() => setIsProfileOpen(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Close
               </button>
               <button
                 onClick={handleEditProfile}
-                className="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 Edit Profile
               </button>

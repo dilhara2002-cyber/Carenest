@@ -46,3 +46,7 @@ next-env.d.ts
 dev.out.log
 dev.err.log
 *.bak
+
+# User-uploaded profile images
+/public/uploads/profiles/*
+!/public/uploads/profiles/.gitkeep
