@@ -384,8 +384,8 @@ export default function MidwivesPage() {
           <p className="text-gray-500 font-light mt-1">Register and manage midwives in the system</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" className="font-semibold rounded-xl border-gray-200 hover:bg-gray-50 transition-colors" onClick={fetchMidwives}>
-            <RefreshCw className="h-4 w-4 mr-2 text-gray-500" />
+          <Button variant="outline" className="font-bold rounded-xl border-gray-300 text-black hover:bg-gray-100 transition-colors" onClick={fetchMidwives}>
+            <RefreshCw className="h-4 w-4 mr-2 text-black" />
             Refresh
           </Button>
           <Button className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-lg transition-all" onClick={() => setShowRegisterModal(true)}>
@@ -768,7 +768,7 @@ export default function MidwivesPage() {
                   }
                   error={formErrors.firstName}
                   placeholder="First name"
-                  className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                  className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
                 />
                 <Input
                   label="Last Name *"
@@ -778,7 +778,7 @@ export default function MidwivesPage() {
                   }
                   error={formErrors.lastName}
                   placeholder="Last name"
-                  className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                  className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
                 />
               </div>
 
@@ -791,7 +791,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.email}
                 placeholder="midwife@example.com"
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Input
@@ -803,7 +803,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.phone}
                 placeholder="+94 77 123 4567"
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Textarea
@@ -814,7 +814,7 @@ export default function MidwivesPage() {
                 }
                 placeholder="Enter full physical address"
                 rows={2}
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Select
@@ -824,7 +824,7 @@ export default function MidwivesPage() {
                   setFormData({ ...formData, language: e.target.value })
                 }
                 options={languageOptions}
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
             </div>
           )}
@@ -850,7 +850,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.licenseNumber}
                 placeholder="e.g., MW-2024-001"
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Select
@@ -862,7 +862,7 @@ export default function MidwivesPage() {
                 options={specializationOptions.map((s) => ({ value: s, label: s }))}
                 placeholder="Select specialization"
                 error={formErrors.specialization}
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Input
@@ -876,7 +876,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.experience}
                 placeholder="e.g., 5"
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Select
@@ -888,7 +888,7 @@ export default function MidwivesPage() {
                 options={workAreaOptions.map((a) => ({ value: a, label: a }))}
                 placeholder="Select work area"
                 error={formErrors.workArea}
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Textarea
@@ -899,7 +899,7 @@ export default function MidwivesPage() {
                 }
                 placeholder="List qualifications, training, degree details..."
                 rows={3}
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
             </div>
           )}
@@ -942,7 +942,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.password}
                 placeholder="Minimum 8 characters"
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <Input
@@ -954,7 +954,7 @@ export default function MidwivesPage() {
                 }
                 error={formErrors.confirmPassword}
                 placeholder="Re-enter password"
-                className="rounded-xl border-gray-250 focus:ring-[#2563EB]"
+                className="rounded-xl border-gray-250 text-gray-900 bg-white focus:ring-[#2563EB]"
               />
 
               <div className="flex items-center gap-2.5 py-1">
@@ -982,7 +982,7 @@ export default function MidwivesPage() {
           <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
             <div>
               {formStep > 1 && (
-                <Button type="button" variant="outline" className="rounded-xl px-5" onClick={handlePrevStep}>
+                <Button type="button" variant="outline" className="rounded-xl px-5 text-black font-bold border-gray-300 hover:bg-gray-100" onClick={handlePrevStep}>
                   Previous
                 </Button>
               )}
@@ -991,7 +991,7 @@ export default function MidwivesPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-xl px-5"
+                className="rounded-xl px-5 text-black font-bold border-gray-300 hover:bg-gray-100"
                 onClick={() => {
                   setShowRegisterModal(false);
                   resetForm();
@@ -1133,7 +1133,7 @@ export default function MidwivesPage() {
           <div className="flex justify-end gap-3 pt-2">
             <Button
               variant="outline"
-              className="rounded-xl px-4"
+              className="rounded-xl px-4 text-black font-bold border-gray-300 hover:bg-gray-100"
               onClick={() => {
                 setShowDeleteModal(false);
                 setSelectedMidwife(null);

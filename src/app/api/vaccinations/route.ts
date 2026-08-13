@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
         { mother: { assignedMidwifeId: session.user.midwifeId } },
         { child: { mother: { assignedMidwifeId: session.user.midwifeId } } },
       ];
-      
+
       // Additional mother filter within assigned mothers
       if (motherId) {
         where.AND = [
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
     // For midwives, verify the mother is assigned to them
     if (session.user.role === 'MIDWIFE' && session.user.midwifeId) {
       let targetMotherId = motherId;
-      
+
       if (childId && !motherId) {
         const child = await prisma.child.findUnique({
           where: { id: childId },
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
         const mother = await prisma.mother.findUnique({
           where: { id: targetMotherId },
         });
-        
+
         if (mother?.assignedMidwifeId !== session.user.midwifeId) {
           return NextResponse.json(
             { error: 'You can only add vaccinations for your assigned mothers' },
@@ -277,12 +277,12 @@ export async function PUT(req: NextRequest) {
     // For midwives, verify the vaccination belongs to their assigned mother
     if (session.user.role === 'MIDWIFE' && session.user.midwifeId) {
       const targetMotherId = currentVaccination.motherId || currentVaccination.child?.motherId;
-      
+
       if (targetMotherId) {
         const mother = await prisma.mother.findUnique({
           where: { id: targetMotherId },
         });
-        
+
         if (mother?.assignedMidwifeId !== session.user.midwifeId) {
           return NextResponse.json(
             { error: 'You can only update vaccinations for your assigned mothers' },
@@ -293,7 +293,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const updateData: Record<string, unknown> = { ...rest };
-    
+
     if (status) updateData.status = status;
     if (administeredDate) updateData.administeredDate = new Date(administeredDate);
     if (batchNumber !== undefined) updateData.batchNumber = batchNumber;
@@ -318,11 +318,11 @@ export async function PUT(req: NextRequest) {
       if (targetMotherId) {
         const mother = await prisma.mother.findUnique({ where: { id: targetMotherId } });
         if (mother) {
-          const statusMessage = status === 'COMPLETED' 
+          const statusMessage = status === 'COMPLETED'
             ? `${currentVaccination.vaccineName} vaccination has been completed.`
             : status === 'MISSED'
-            ? `${currentVaccination.vaccineName} vaccination was marked as missed.`
-            : `${currentVaccination.vaccineName} vaccination status updated.`;
+              ? `${currentVaccination.vaccineName} vaccination was marked as missed.`
+              : `${currentVaccination.vaccineName} vaccination status updated.`;
 
           await prisma.notification.create({
             data: {
