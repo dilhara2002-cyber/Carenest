@@ -158,3 +158,31 @@ body {
   transform: scale(1.1);
 }
 
+/* Force form field text and placeholders to black without affecting banner text */
+input,
+textarea,
+select {
+  color: #000 !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder,
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+/* Ensure accidental `.text-transparent` usages don't hide normal text.
+   Preserve gradient text which pairs `.text-transparent` with `.bg-clip-text`. */
+.text-transparent:not(.bg-clip-text),
+button .text-transparent,
+input .text-transparent,
+textarea .text-transparent,
+select .text-transparent {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+
