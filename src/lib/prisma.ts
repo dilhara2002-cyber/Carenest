@@ -20,8 +20,6 @@ function createPrismaClient() {
   // an adapter or accelerateUrl to be provided. Use the Postgres adapter factory
   // with the project's DATABASE_URL so the PrismaClient can operate without
   // requiring remote acceleration.
-  const adapter = new PrismaPg(process.env.DATABASE_URL ?? '');
-
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
