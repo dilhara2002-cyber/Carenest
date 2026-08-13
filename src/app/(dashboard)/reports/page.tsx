@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Select } from '@/components/ui';
 
-import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle, Upload } from 'lucide-react';
+import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle } from 'lucide-react';
 import DashboardHero from '@/components/layout/DashboardHero';
 
 
@@ -30,20 +30,20 @@ export default function ReportsPage() {
   // Patient Documents States
   const [mothers, setMothers] = useState<{id: string, user: {name: string, email: string}}[]>([]);
   const [selectedMotherId, setSelectedMotherId] = useState('');
-  const [motherDocuments, setMotherDocuments] = useState<any[]>([]);
+  type DocumentItem = {
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    uploadedAt: string;
+    documentType: { name: string };
+  };
+  const [motherDocuments, setMotherDocuments] = useState<DocumentItem[]>([]);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Fetch initial data
-  useEffect(() => {
-    fetchMothers();
-    if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MIDWIFE') {
-      fetchDocumentTypes();
-    }
-  }, [session]);
-
+  // Fetch functions (hoisted so they can be referenced in effects)
   const fetchMothers = async () => {
     try {
       const res = await fetch('/api/mothers?pageSize=100');
@@ -51,7 +51,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setMothers(data.data || []);
       }
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load mothers');
     }
   };
@@ -63,10 +63,20 @@ export default function ReportsPage() {
         const data = await res.json();
         setDocumentTypes(data.data || []);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to load document types');
     }
   };
+
+  // Fetch initial data
+  useEffect(() => {
+    (async () => {
+      await fetchMothers();
+      if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MIDWIFE') {
+        await fetchDocumentTypes();
+      }
+    })();
+  }, [session]);
 
   const handleCreateDocumentType = async () => {
     if (!newDocTypeName.trim()) {
@@ -91,7 +101,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to create document type');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Error creating document type');
     } finally {
       setDocTypeLoading(false);
@@ -112,7 +122,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to delete document type');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Error deleting document type');
     }
   };
@@ -125,16 +135,18 @@ export default function ReportsPage() {
         const data = await res.json();
         setMotherDocuments(data.data || []);
       }
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load documents');
     }
   };
 
   useEffect(() => {
     if (selectedMotherId) {
-      fetchMotherDocuments(selectedMotherId);
+      (async () => {
+        await fetchMotherDocuments(selectedMotherId);
+      })();
     } else {
-      setMotherDocuments([]);
+      Promise.resolve().then(() => setMotherDocuments([]));
     }
   }, [selectedMotherId]);
 
@@ -171,7 +183,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to upload document.');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred during upload.');
     } finally {
       setUploading(false);
@@ -196,7 +208,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to delete document.');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred while deleting.');
     } finally {
       setDeletingId(null);
