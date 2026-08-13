@@ -297,7 +297,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Records</p>
-                <p className="text-2xl font-bold">{pregnancies.length}</p>
+                <p className="text-2xl font-bold text-pink-600">{pregnancies.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -308,7 +308,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Active</p>
-                <p className="text-2xl font-bold">{activePregnancies.length}</p>
+                <p className="text-2xl font-bold text-green-700">{activePregnancies.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -319,7 +319,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">High Risk</p>
-                <p className="text-2xl font-bold">{highRiskPregnancies.length}</p>
+                <p className="text-2xl font-bold text-red-700">{highRiskPregnancies.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -330,7 +330,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Delivered</p>
-                <p className="text-2xl font-bold">{pregnancies.filter(p => p.status === 'DELIVERED').length}</p>
+                <p className="text-2xl font-bold text-blue-600">{pregnancies.filter(p => p.status === 'DELIVERED').length}</p>
               </div>
             </CardContent>
           </Card>
@@ -392,7 +392,7 @@ export default function PregnanciesPage() {
                     <div>
                       {canManage && pregnancy.mother && (
                         <>
-                          <h3 className="font-semibold text-lg">{pregnancy.mother.user.name}</h3>
+                          <h3 className="font-semibold text-lg text-gray-900">{pregnancy.mother.user.name}</h3>
                           <p className="text-sm text-gray-500">{pregnancy.mother.user.email}</p>
                         </>
                       )}
@@ -467,16 +467,16 @@ export default function PregnanciesPage() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-gray-500 text-xs">Last Menstrual Period</p>
-                    <p className="font-medium">{formatDate(pregnancy.lastMenstrualPeriod) || 'N/A'}</p>
+                    <p className="font-medium text-gray-900">{formatDate(pregnancy.lastMenstrualPeriod) || 'N/A'}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-gray-500 text-xs">Expected Delivery</p>
-                    <p className="font-medium">{formatDate(pregnancy.expectedDeliveryDate) || 'N/A'}</p>
+                    <p className="font-medium text-gray-900">{formatDate(pregnancy.expectedDeliveryDate) || 'N/A'}</p>
                   </div>
                   {canManage && pregnancy.mother?.assignedMidwife && (
                     <div className="bg-gray-50 p-3 rounded-lg col-span-2">
                       <p className="text-gray-500 text-xs">Assigned Midwife</p>
-                      <p className="font-medium">{pregnancy.mother.assignedMidwife.user.name}</p>
+                      <p className="font-medium text-gray-900">{pregnancy.mother.assignedMidwife.user.name}</p>
                     </div>
                   )}
                 </div>

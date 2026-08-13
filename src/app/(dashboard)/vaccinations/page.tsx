@@ -375,7 +375,7 @@ export default function VaccinationsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Pending</p>
-              <p className="text-2xl font-bold">{pendingVaccinations.length}</p>
+              <p className="text-2xl font-bold text-yellow-700">{pendingVaccinations.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -386,7 +386,7 @@ export default function VaccinationsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Overdue</p>
-              <p className="text-2xl font-bold">{overdueVaccinations.length}</p>
+              <p className="text-2xl font-bold text-red-700">{overdueVaccinations.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -397,7 +397,7 @@ export default function VaccinationsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Completed</p>
-              <p className="text-2xl font-bold">{completedVaccinations.length}</p>
+              <p className="text-2xl font-bold text-green-700">{completedVaccinations.length}</p>
             </div>
           </CardContent>
         </Card>
