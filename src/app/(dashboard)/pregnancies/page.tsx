@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Textarea } from '@/components/ui';
 import { Heart, Plus, Edit, AlertTriangle, User, Calendar, RefreshCw, Search, Eye, Trash2 } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate, getPregnancyTrimester } from '@/lib/utils';
 import type { PregnancyProgress } from '@/lib/utils';
 
@@ -266,27 +267,25 @@ export default function PregnanciesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pregnancy Tracking</h1>
-          <p className="text-gray-500">
-            {isMother ? 'Monitor your pregnancy progress' : 'Monitor and manage pregnancy records'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="font-semibold" onClick={fetchPregnancies}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {canManage && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Pregnancy
+      <DashboardHero
+        title="Pregnancy Tracking"
+        subtitle={isMother ? 'Monitor your pregnancy progress' : 'Monitor and manage pregnancy records'}
+        pillLabel="Pregnancy"
+        actions={(
+          <>
+            <Button variant="outline" className="font-semibold" onClick={fetchPregnancies}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
             </Button>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Pregnancy
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {/* Stats (for Admin/Midwife) */}
       {canManage && (
@@ -298,7 +297,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Records</p>
-                <p className="text-2xl font-bold">{pregnancies.length}</p>
+                <p className="text-2xl font-bold text-pink-600">{pregnancies.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -309,7 +308,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Active</p>
-                <p className="text-2xl font-bold">{activePregnancies.length}</p>
+                <p className="text-2xl font-bold text-green-700">{activePregnancies.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -320,7 +319,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">High Risk</p>
-                <p className="text-2xl font-bold">{highRiskPregnancies.length}</p>
+                <p className="text-2xl font-bold text-red-700">{highRiskPregnancies.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -331,7 +330,7 @@ export default function PregnanciesPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Delivered</p>
-                <p className="text-2xl font-bold">{pregnancies.filter(p => p.status === 'DELIVERED').length}</p>
+                <p className="text-2xl font-bold text-blue-600">{pregnancies.filter(p => p.status === 'DELIVERED').length}</p>
               </div>
             </CardContent>
           </Card>
@@ -393,7 +392,7 @@ export default function PregnanciesPage() {
                     <div>
                       {canManage && pregnancy.mother && (
                         <>
-                          <h3 className="font-semibold text-lg">{pregnancy.mother.user.name}</h3>
+                          <h3 className="font-semibold text-lg text-gray-900">{pregnancy.mother.user.name}</h3>
                           <p className="text-sm text-gray-500">{pregnancy.mother.user.email}</p>
                         </>
                       )}
@@ -468,16 +467,16 @@ export default function PregnanciesPage() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-gray-500 text-xs">Last Menstrual Period</p>
-                    <p className="font-medium">{formatDate(pregnancy.lastMenstrualPeriod) || 'N/A'}</p>
+                    <p className="font-medium text-gray-900">{formatDate(pregnancy.lastMenstrualPeriod) || 'N/A'}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-gray-500 text-xs">Expected Delivery</p>
-                    <p className="font-medium">{formatDate(pregnancy.expectedDeliveryDate) || 'N/A'}</p>
+                    <p className="font-medium text-gray-900">{formatDate(pregnancy.expectedDeliveryDate) || 'N/A'}</p>
                   </div>
                   {canManage && pregnancy.mother?.assignedMidwife && (
                     <div className="bg-gray-50 p-3 rounded-lg col-span-2">
                       <p className="text-gray-500 text-xs">Assigned Midwife</p>
-                      <p className="font-medium">{pregnancy.mother.assignedMidwife.user.name}</p>
+                      <p className="font-medium text-gray-900">{pregnancy.mother.assignedMidwife.user.name}</p>
                     </div>
                   )}
                 </div>

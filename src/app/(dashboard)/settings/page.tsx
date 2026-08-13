@@ -27,6 +27,8 @@ export default function SettingsPage() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [photoChanged, setPhotoChanged] = useState(false);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [profileForm, setProfileForm] = useState({
     name: '',
     profileImage: '',
@@ -177,6 +179,23 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     setProfileSaving(true);
     try {
+      // Upload new photo file first, if one was selected
+      let newImageUrl: string | undefined;
+      if (photoChanged && pendingPhotoFile) {
+        const uploadForm = new FormData();
+        uploadForm.append('image', pendingPhotoFile);
+        const uploadRes = await fetch('/api/upload/profile-image', {
+          method: 'POST',
+          body: uploadForm,
+        });
+        const uploadPayload = await uploadRes.json();
+        if (!uploadRes.ok) {
+          alert(uploadPayload.error || 'Failed to upload photo');
+          return;
+        }
+        newImageUrl = uploadPayload.url;
+      }
+
       const payload: {
         phone: string;
         address: string;
@@ -186,8 +205,12 @@ export default function SettingsPage() {
         address: profileForm.address,
       };
 
-      if (photoChanged) {
-        payload.profileImage = profileForm.profileImage.trim() || null;
+      // Only send profileImage if we uploaded a new one, or if user removed their photo
+      if (newImageUrl) {
+        payload.profileImage = newImageUrl;
+      } else if (photoChanged && !pendingPhotoFile) {
+        // Photo was removed
+        payload.profileImage = null;
       }
 
       const profileRes = await fetch('/api/settings', {
@@ -208,9 +231,14 @@ export default function SettingsPage() {
           phone: profilePayload.data.phone || '',
           address: profilePayload.data.address || '',
         });
+        // Clean up preview URL
+        if (photoPreviewUrl) {
+          URL.revokeObjectURL(photoPreviewUrl);
+          setPhotoPreviewUrl(null);
+        }
+        setPendingPhotoFile(null);
         await updateSession({
           name: profilePayload.data.name || profileForm.name,
-          image: profilePayload.data.profileImage || null,
         });
       }
       setPhotoChanged(false);
@@ -261,23 +289,15 @@ export default function SettingsPage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        alert('Failed to read selected image');
-        return;
-      }
-      setProfileForm((prev) => ({
-        ...prev,
-        profileImage: result,
-      }));
-      setPhotoChanged(true);
-    };
-    reader.onerror = () => {
-      alert('Failed to load selected image');
-    };
-    reader.readAsDataURL(file);
+    // Clean up previous preview URL
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+    }
+
+    // Store the File object for later upload, and create a lightweight preview URL
+    setPendingPhotoFile(file);
+    setPhotoPreviewUrl(URL.createObjectURL(file));
+    setPhotoChanged(true);
     event.target.value = '';
   };
 
@@ -415,10 +435,10 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="h-20 w-20 rounded-full bg-teal-100 flex items-center justify-center">
-                    {profileForm.profileImage ? (
+                    {(photoPreviewUrl || profileForm.profileImage) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={profileForm.profileImage}
+                        src={photoPreviewUrl || profileForm.profileImage}
                         alt="Profile"
                         className="h-20 w-20 rounded-full object-cover"
                       />

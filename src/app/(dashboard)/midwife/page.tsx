@@ -56,7 +56,23 @@ export default function MidwifeDashboard() {
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="space-y-6 bg-[#F9FAFB] min-h-screen">
+    <div className="relative min-h-screen">
+      {/* Maternal Care Wallpaper Background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/admin-wallpaper.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          opacity: 0.12,
+        }}
+      />
+      {/* Soft gradient overlay for better contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/40 via-white/60 to-pink-50/40" />
+
+      <div className="space-y-6 relative z-10 min-h-screen">
       
       {/* ── Hero Banner ── */}
       {/* Mirrors admin page CTA style: bg-[#111827] with blue + pink overlays */}
@@ -438,6 +454,7 @@ export default function MidwifeDashboard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -472,7 +489,7 @@ function StatCard({
             <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest">Live</span>
           </div>
         </div>
-        <p className="text-sm font-bold text-gray-700 mb-1">{title}</p>
+        <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-widest mb-1">{title}</p>
         <p className={`text-3xl font-extrabold ${valueColor} animate-count-up`}>{value}</p>
       </div>
     </div>

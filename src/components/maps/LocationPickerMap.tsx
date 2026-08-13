@@ -253,7 +253,7 @@ export function LocationPickerMap({ latitude, longitude, onPick }: LocationPicke
         ref={searchInputRef}
         type="text"
         placeholder="Search a place or address"
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
       />
 
       <div className="h-80 w-full overflow-hidden rounded-lg border border-gray-200">

@@ -57,7 +57,23 @@ export default function AdminDashboard() {
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="space-y-6 bg-[#F9FAFB] min-h-screen">
+    <div className="relative min-h-screen">
+      {/* Maternal Care Wallpaper Background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/admin-wallpaper.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          opacity: 0.12,
+        }}
+      />
+      {/* Soft gradient overlay for better contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/40 via-white/60 to-pink-50/40" />
+
+    <div className="space-y-6 relative z-10 min-h-screen">
 
       {/* ── Hero Banner ── */}
       {/* Mirrors homepage CTA: bg-[#111827] with blue + pink overlays */}
@@ -324,6 +340,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
