@@ -13,7 +13,7 @@ function createPrismaClient() {
   // way; passing an `engine` option to the PrismaClient constructor is
   // not supported and caused an unknown-property error.
   if (!process.env.PRISMA_CLIENT_ENGINE_TYPE) {
-    process.env.PRISMA_CLIENT_ENGINE_TYPE = 'binary';
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = 'library';
   }
 
   // If the generated client expects the "client" engine type, Prisma requires
