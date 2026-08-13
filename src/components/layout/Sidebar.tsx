@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -20,41 +20,190 @@ import {
   Heart,
   FileText,
   Brain,
-  ChevronDown,
   UserPlus,
   Package,
+  TrendingUp,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
-interface NavItem {
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+interface NavLeaf {
+  kind: 'leaf';
   label: string;
   href: string;
   icon: React.ElementType;
   roles: string[];
 }
 
+interface NavGroup {
+  kind: 'group';
+  label: string;
+  icon: React.ElementType;
+  roles: string[];
+  /** Paths that belong to this group — used to auto-expand when active */
+  matchPaths: string[];
+  children: NavLeaf[];
+}
+
+type NavItem = NavLeaf | NavGroup;
+
+// ── Nav definition ─────────────────────────────────────────────────────────────
+
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/mother', icon: Home, roles: ['MOTHER'] },
-  { label: 'Dashboard', href: '/midwife', icon: Home, roles: ['MIDWIFE'] },
-  { label: 'Dashboard', href: '/admin', icon: Home, roles: ['ADMIN'] },
-  { label: 'Midwives', href: '/midwives', icon: UserPlus, roles: ['ADMIN'] },
-  { label: 'Mothers', href: '/mothers', icon: Users, roles: ['MIDWIFE', 'ADMIN'] },
-  { label: 'My Pregnancy', href: '/pregnancies', icon: Heart, roles: ['MOTHER'] },
-  { label: 'Pregnancies', href: '/pregnancies', icon: Heart, roles: ['MIDWIFE', 'ADMIN'] },
-  { label: 'My Children', href: '/children', icon: Baby, roles: ['MOTHER'] },
-  { label: 'Children', href: '/children', icon: Baby, roles: ['MIDWIFE', 'ADMIN'] },
-  { label: 'My Visits', href: '/visits', icon: Calendar, roles: ['MOTHER'] },
-  { label: 'Visits', href: '/visits', icon: Calendar, roles: ['MIDWIFE', 'ADMIN'] },
-  { label: 'My Vaccinations', href: '/vaccinations', icon: Syringe, roles: ['MOTHER'] },
-  { label: 'Vaccinations', href: '/vaccinations', icon: Syringe, roles: ['MIDWIFE', 'ADMIN'] },
-  { label: 'My Reports', href: '/my-reports', icon: FileText, roles: ['MOTHER'] },
-  { label: 'AI Care', href: '/ai-care', icon: Brain, roles: ['MOTHER'] },
-  { label: 'Chat', href: '/chat', icon: MessageSquare, roles: ['MOTHER', 'MIDWIFE'] },
-  { label: 'Notifications', href: '/notifications', icon: Bell, roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },
-  { label: 'Thriposha', href: '/thriposha', icon: Package, roles: ['MIDWIFE'] },
-  { label: 'Reports', href: '/reports', icon: FileText, roles: ['MIDWIFE', 'ADMIN'] },
-  { label: 'Thriposha Reports', href: '/thriposha-reports', icon: Package, roles: ['ADMIN'] },
-  { label: 'Settings', href: '/settings', icon: Settings, roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },
+  // ── Dashboards
+  { kind: 'leaf', label: 'Dashboard', href: '/mother',  icon: Home, roles: ['MOTHER']  },
+  { kind: 'leaf', label: 'Dashboard', href: '/midwife', icon: Home, roles: ['MIDWIFE'] },
+  { kind: 'leaf', label: 'Dashboard', href: '/admin',   icon: Home, roles: ['ADMIN']   },
+
+  // ── Admin — Midwives
+  { kind: 'leaf', label: 'Midwives', href: '/midwives', icon: UserPlus, roles: ['ADMIN'] },
+
+  // ── Midwife / Admin — Mother Management group
+  {
+    kind: 'group',
+    label: 'Mother Management',
+    icon: Users,
+    roles: ['MIDWIFE', 'ADMIN'],
+    matchPaths: ['/mothers', '/mother-growth'],
+    children: [
+      { kind: 'leaf', label: 'Mothers',        href: '/mothers',       icon: Users,      roles: ['MIDWIFE', 'ADMIN'] },
+      { kind: 'leaf', label: 'Growth Tracker', href: '/mother-growth', icon: TrendingUp, roles: ['MIDWIFE', 'ADMIN'] },
+    ],
+  },
+
+  // ── Mother — Pregnancy & Health group (includes her own growth history)
+  {
+    kind: 'group',
+    label: 'Pregnancy & Health',
+    icon: Heart,
+    roles: ['MOTHER'],
+    matchPaths: ['/pregnancies', '/mother-growth'],
+    children: [
+      { kind: 'leaf', label: 'My Pregnancy', href: '/pregnancies',            icon: Heart,      roles: ['MOTHER'] },
+      { kind: 'leaf', label: 'My Growth',    href: '/mother-growth/my-history', icon: TrendingUp, roles: ['MOTHER'] },
+    ],
+  },
+
+  // ── Shared / other top-level items
+  { kind: 'leaf', label: 'Pregnancies',       href: '/pregnancies',   icon: Heart,         roles: ['MIDWIFE', 'ADMIN'] },
+  { kind: 'leaf', label: 'My Children',       href: '/children',      icon: Baby,          roles: ['MOTHER']           },
+  { kind: 'leaf', label: 'Children',          href: '/children',      icon: Baby,          roles: ['MIDWIFE', 'ADMIN'] },
+  { kind: 'leaf', label: 'My Visits',         href: '/visits',        icon: Calendar,      roles: ['MOTHER']           },
+  { kind: 'leaf', label: 'Visits',            href: '/visits',        icon: Calendar,      roles: ['MIDWIFE', 'ADMIN'] },
+  { kind: 'leaf', label: 'My Vaccinations',   href: '/vaccinations',  icon: Syringe,       roles: ['MOTHER']           },
+  { kind: 'leaf', label: 'Vaccinations',      href: '/vaccinations',  icon: Syringe,       roles: ['MIDWIFE', 'ADMIN'] },
+  { kind: 'leaf', label: 'My Reports',        href: '/my-reports',    icon: FileText,      roles: ['MOTHER']           },
+  { kind: 'leaf', label: 'AI Care',           href: '/ai-care',       icon: Brain,         roles: ['MOTHER']           },
+  { kind: 'leaf', label: 'Chat',              href: '/chat',          icon: MessageSquare, roles: ['MOTHER', 'MIDWIFE'] },
+  { kind: 'leaf', label: 'Notifications',     href: '/notifications', icon: Bell,          roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },
+  { kind: 'leaf', label: 'Thriposha',         href: '/thriposha',     icon: Package,       roles: ['MIDWIFE']          },
+  { kind: 'leaf', label: 'Reports',           href: '/reports',       icon: FileText,      roles: ['MIDWIFE', 'ADMIN'] },
+  { kind: 'leaf', label: 'Thriposha Reports', href: '/thriposha-reports', icon: Package,   roles: ['ADMIN']            },
+  { kind: 'leaf', label: 'Settings',          href: '/settings',      icon: Settings,      roles: ['MOTHER', 'MIDWIFE', 'ADMIN'] },
 ];
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function isGroupActive(group: NavGroup, pathname: string): boolean {
+  return group.matchPaths.some((p) => pathname === p || pathname.startsWith(p + '/'));
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function LeafLink({
+  item,
+  pathname,
+  indent = false,
+  onClick,
+}: {
+  item: NavLeaf;
+  pathname: string;
+  indent?: boolean;
+  onClick?: () => void;
+}) {
+  const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+  const Icon = item.icon;
+  return (
+    <li>
+      <Link
+        href={item.href}
+        onClick={onClick}
+        className={cn(
+          'flex items-center gap-3 rounded-md text-sm font-medium transition-colors',
+          indent ? 'px-3 py-2 ml-4' : 'px-3 py-2',
+          isActive
+            ? 'bg-blue-50 text-blue-600 font-semibold'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        {item.label}
+      </Link>
+    </li>
+  );
+}
+
+function GroupNav({
+  group,
+  pathname,
+  onClose,
+}: {
+  group: NavGroup;
+  pathname: string;
+  onClose: () => void;
+}) {
+  const active = isGroupActive(group, pathname);
+  const [open, setOpen] = useState(active);
+
+  // Auto-expand when the user navigates to a child page
+  useEffect(() => {
+    if (active) setOpen(true);
+  }, [active]);
+
+  const GroupIcon = group.icon;
+
+  return (
+    <li>
+      {/* Group header — toggles expand/collapse */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          'flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm font-medium transition-colors',
+          active
+            ? 'bg-blue-50 text-blue-600 font-semibold'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        )}
+      >
+        <GroupIcon className="h-5 w-5 shrink-0" />
+        <span className="flex-1 text-left">{group.label}</span>
+        {open ? (
+          <ChevronDown className="h-4 w-4 shrink-0 transition-transform" />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0 transition-transform" />
+        )}
+      </button>
+
+      {/* Children */}
+      {open && (
+        <ul className="mt-0.5 space-y-0.5">
+          {group.children.map((child) => (
+            <LeafLink
+              key={child.href}
+              item={child}
+              pathname={pathname}
+              indent
+              onClick={onClose}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+// ── Main Sidebar ───────────────────────────────────────────────────────────────
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,7 +211,9 @@ export function Sidebar() {
   const { data: session } = useSession();
   const userRole = session?.user?.role || 'MOTHER';
 
-  const filteredNavItems = navItems.filter((item) => item.roles.includes(userRole));
+  const visibleItems = navItems.filter((item) => item.roles.includes(userRole));
+
+  const close = () => setIsOpen(false);
 
   return (
     <>
@@ -78,7 +229,7 @@ export function Sidebar() {
       {isOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsOpen(false)}
+          onClick={close}
         />
       )}
 
@@ -91,33 +242,37 @@ export function Sidebar() {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-200">
-            <Heart className="h-8 w-8 text-teal-600" />
-            <span className="text-xl font-bold text-gray-900">CareNest</span>
+          <div className="flex items-center gap-2.5 px-6 py-5 border-b border-gray-200 group cursor-pointer">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#F472B6] opacity-0 group-hover:opacity-100 transition duration-500 blur-xs" />
+              <Heart className="relative h-7 w-7 text-blue-600 transition-transform duration-300 group-hover:scale-110" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-gray-900 bg-clip-text">
+              CareNest
+            </span>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4">
             <ul className="space-y-1 px-3">
-              {filteredNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
+              {visibleItems.map((item) => {
+                if (item.kind === 'group') {
+                  return (
+                    <GroupNav
+                      key={item.label + item.roles.join()}
+                      group={item}
+                      pathname={pathname}
+                      onClose={close}
+                    />
+                  );
+                }
                 return (
-                  <li key={item.href + item.label}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-teal-50 text-teal-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      )}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  </li>
+                  <LeafLink
+                    key={item.href + item.label}
+                    item={item}
+                    pathname={pathname}
+                    onClick={close}
+                  />
                 );
               })}
             </ul>

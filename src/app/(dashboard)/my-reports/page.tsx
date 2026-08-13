@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Download, AlertCircle, FileText, Filter, Calendar, Layers, Clock } from 'lucide-react';
+import { Download, AlertCircle, FileText, Filter, Calendar, Layers, Clock, Upload, Trash2 } from 'lucide-react';
 
 interface DocumentType {
   id: string;
@@ -37,6 +37,13 @@ export default function MyReportsPage() {
   const [error, setError] = useState<string>('');
   const [downloading, setDownloading] = useState(false);
 
+  // Upload & Delete States
+  const [allDocumentTypes, setAllDocumentTypes] = useState<DocumentType[]>([]);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   // Enforce access control: Only mothers can access this view
   useEffect(() => {
     if (session && session.user.role !== 'MOTHER') {
@@ -48,6 +55,7 @@ export default function MyReportsPage() {
   useEffect(() => {
     if (session?.user?.motherId) {
       fetchDocuments();
+      fetchAllDocumentTypes();
     }
   }, [session]);
 
@@ -91,6 +99,18 @@ export default function MyReportsPage() {
     setFilteredDocuments(docs);
   }, [selectedType, dateRange, startDate, endDate, allDocuments]);
 
+  const fetchAllDocumentTypes = async () => {
+    try {
+      const res = await fetch('/api/documents/types');
+      if (res.ok) {
+        const data = await res.json();
+        setAllDocumentTypes(data.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching document types', err);
+    }
+  };
+
   const fetchDocuments = async () => {
     try {
       setLoading(true);
@@ -121,6 +141,73 @@ export default function MyReportsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile || !uploadType) {
+      setError('Please select a file and document type.');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      formData.append('documentTypeId', uploadType);
+      formData.append('motherId', session?.user?.motherId || '');
+
+      const res = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        setUploadFile(null);
+        setUploadType('');
+        // Reset file input UI manually if needed, or by relying on state
+        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+        await fetchDocuments();
+        alert('Document uploaded successfully!');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to upload document.');
+      }
+    } catch (err) {
+      setError('An error occurred during upload.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (docId: string) => {
+    if (!confirm('Are you sure you want to delete this document? This cannot be undone.')) {
+      return;
+    }
+
+    setDeletingId(docId);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/documents/${session?.user?.motherId}?documentId=${docId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        await fetchDocuments();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to delete document.');
+      }
+    } catch (err) {
+      setError('An error occurred while deleting.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -225,7 +312,63 @@ export default function MyReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
           {/* 👈 LEFT COLUMN: SEQUENTIAL STEP FILTER SELECTION INTERFACE */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
+            
+            {/* UPLOAD DOCUMENT CARD */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+                <Upload className="h-4 w-4 text-teal-600" />
+                <h2 className="font-semibold text-gray-900">Upload Document</h2>
+              </div>
+              
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Document Type <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                    value={uploadType}
+                    onChange={(e) => setUploadType(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>-- Select Type --</option>
+                    {allDocumentTypes.map(type => (
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    File (PDF, JPG, PNG) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg p-1"
+                    required
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={uploading || !uploadFile || !uploadType}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 text-white rounded-lg text-sm font-semibold transition-all shadow-sm"
+                >
+                  {uploading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {uploading ? 'Uploading...' : 'Upload Document'}
+                </button>
+              </form>
+            </div>
+
+            {/* DOWNLOAD FILTERS CARD */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
               <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
                 <Filter className="h-4 w-4 text-teal-600" />
@@ -381,13 +524,27 @@ export default function MyReportsPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleIndividualDownload(doc.fileUrl)}
-                      className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-200 rounded-lg text-xs font-semibold text-gray-700 hover:text-teal-700 transition-all active:scale-[0.985]"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      View / Download PDF
-                    </button>
+                    <div className="flex gap-2 w-full mt-2">
+                      <button
+                        onClick={() => handleIndividualDownload(doc.fileUrl)}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-200 rounded-lg text-xs font-semibold text-gray-700 hover:text-teal-700 transition-all active:scale-[0.985]"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        View
+                      </button>
+                      <button
+                        onClick={() => handleDelete(doc.id)}
+                        disabled={deletingId === doc.id}
+                        className="flex-none flex items-center justify-center px-3 py-2 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg text-xs font-semibold text-gray-700 hover:text-red-700 transition-all active:scale-[0.985] disabled:opacity-50"
+                        title="Delete Document"
+                      >
+                        {deletingId === doc.id ? (
+                          <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-red-600"></div>
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

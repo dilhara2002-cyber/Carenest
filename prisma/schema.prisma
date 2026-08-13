@@ -2,7 +2,8 @@
 // Database Schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -122,6 +123,7 @@ model Mother {
   aiCareRecords         AICareRecord[]
   documents             Document[]
   thriposhaDistributions ThriposhaDistribution[]
+  motherGrowthRecords   MotherGrowthRecord[]
 
   @@map("mothers")
 }
@@ -143,6 +145,7 @@ model Midwife {
   assignedMothers Mother[]
   visits          Visit[]
   thriposhaDistributions ThriposhaDistribution[]
+  motherGrowthRecords    MotherGrowthRecord[]
 
   @@map("midwives")
 }
@@ -190,6 +193,7 @@ model Child {
   // Relations
   mother        Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
   growthRecords GrowthRecord[]
+  childGrowthRecords ChildGrowthRecord[]
   vaccinations  Vaccination[]
   visits        Visit[]   // Postnatal visits linked to this child
   thriposhaDistributions ThriposhaDistribution[]
@@ -222,6 +226,24 @@ model GrowthRecord {
   child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@map("growth_records")
+}
+
+// Child Growth Record - tracks ongoing growth measurements over time (weight, length/height, head circumference)
+model ChildGrowthRecord {
+  id                  String   @id @default(cuid())
+  childId             String
+  recordDate          DateTime @default(now())
+  weightKg            Decimal  @db.Decimal(5, 2) // weight in kg
+  lengthCm            Decimal  @db.Decimal(5, 2) // length/height in cm
+  headCircumferenceCm Decimal  @db.Decimal(5, 2) // head circumference in cm
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  child               Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("child_growth_records")
 }
 
 // Visit Table
@@ -420,4 +442,24 @@ model ThriposhaStock {
   updatedAt     DateTime  @updatedAt
 
   @@map("thriposha_stock")
+}
+
+// Mother Growth Record — tracks weight and SFH (belly growth) during pregnancy
+model MotherGrowthRecord {
+  id           String   @id @default(cuid())
+  motherId     String
+  recordedById String   // midwifeId of the staff member who recorded this
+  recordDate   DateTime @default(now())
+  weightKg     Decimal  @db.Decimal(5, 2) // e.g. 65.40 kg
+  sfhCm        Decimal? @db.Decimal(5, 2) // Symphysis-Fundal Height in cm (belly growth)
+  notes        String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  mother       Mother   @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  recordedBy   Midwife  @relation(fields: [recordedById], references: [id])
+
+  @@map("mother_growth_records")
 }

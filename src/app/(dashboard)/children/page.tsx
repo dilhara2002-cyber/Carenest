@@ -31,6 +31,7 @@ import {
   Syringe,
   AlertTriangle,
 } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate } from '@/lib/utils';
 import { getStatusStyles } from '@/lib/growthUtils';
 
@@ -133,10 +134,65 @@ export default function ChildrenPage() {
     gestationalAgeWeeks: '',
   });
 
+  const [showLogGrowthModal, setShowLogGrowthModal] = useState(false);
+  const [selectedChildForGrowth, setSelectedChildForGrowth] = useState<Child | null>(null);
+  const [growthFormData, setGrowthFormData] = useState({
+    recordDate: new Date().toISOString().split('T')[0],
+    weightKg: '',
+    lengthCm: '',
+    headCircumferenceCm: '',
+    notes: '',
+  });
+
   const isAdmin = session?.user?.role === 'ADMIN';
   const isMidwife = session?.user?.role === 'MIDWIFE';
   const isMother = session?.user?.role === 'MOTHER';
   const canManage = isAdmin || isMidwife;
+
+  const openLogGrowthModal = (child: Child) => {
+    setSelectedChildForGrowth(child);
+    setGrowthFormData({
+      recordDate: new Date().toISOString().split('T')[0],
+      weightKg: '',
+      lengthCm: '',
+      headCircumferenceCm: '',
+      notes: '',
+    });
+    setShowLogGrowthModal(true);
+  };
+
+  const handleLogGrowthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedChildForGrowth) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/children/${selectedChildForGrowth.id}/growth-records`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recordDate: growthFormData.recordDate,
+          weightKg: growthFormData.weightKg,
+          lengthCm: growthFormData.lengthCm,
+          headCircumferenceCm: growthFormData.headCircumferenceCm,
+          notes: growthFormData.notes,
+        }),
+      });
+
+      if (res.ok) {
+        setShowLogGrowthModal(false);
+        setSelectedChildForGrowth(null);
+        fetchChildren();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save growth record');
+      }
+    } catch (error) {
+      console.error('Failed to log growth:', error);
+      alert('Failed to log growth record');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const fetchChildren = useCallback(async () => {
     try {
@@ -378,27 +434,25 @@ export default function ChildrenPage() {
 
   return (
     <div className="space-y-6 text-gray-900 antialiased">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Children Management</h1>
-          <p className="text-gray-700">
-            {isMother ? "Track your children's health and growth" : 'Register and manage children records'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="font-semibold" onClick={fetchChildren}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {canManage && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Register Child
+      <DashboardHero
+        title="Children Management"
+        subtitle={isMother ? "Track your children's health and growth" : 'Register and manage children records'}
+        pillLabel="Children"
+        actions={(
+          <>
+            <Button variant="outline" onClick={fetchChildren}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
             </Button>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Register Child
+              </Button>
+            )}
+          </>
+        )}
+      />
 
       {/* Stats */}
       {canManage && (
@@ -446,13 +500,13 @@ export default function ChildrenPage() {
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search by child or mother name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
               </div>
@@ -608,16 +662,27 @@ export default function ChildrenPage() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+                  <div className="flex justify-end gap-2 mt-4 pt-4 border-t flex-wrap">
                     <Button size="sm" variant="outline" onClick={() => openViewModal(child)}>
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
                     {canManage && (
-                      <Button size="sm" variant="outline" onClick={() => openEditModal(child)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => openEditModal(child)}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-teal-500 text-teal-600 hover:bg-teal-50"
+                          onClick={() => openLogGrowthModal(child)}
+                        >
+                          <Scale className="h-4 w-4 mr-1" />
+                          Log Growth
+                        </Button>
+                      </>
                     )}
                   </div>
                 </CardContent>
@@ -1071,6 +1136,85 @@ export default function ChildrenPage() {
               </Button>
               <Button type="submit" disabled={actionLoading}>
                 {actionLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Log Growth Modal */}
+      <Modal
+        isOpen={showLogGrowthModal}
+        onClose={() => { setShowLogGrowthModal(false); setSelectedChildForGrowth(null); }}
+        title={`Log Growth for ${selectedChildForGrowth?.name}`}
+        size="md"
+      >
+        {selectedChildForGrowth && (
+          <form onSubmit={handleLogGrowthSubmit} className="space-y-6">
+            <div className="bg-teal-50/50 p-4 rounded-lg border border-teal-100">
+              <h3 className="font-semibold text-teal-900 flex items-center gap-2 mb-3">
+                <Scale className="h-5 w-5" />
+                Growth Measurements (up to age 5)
+              </h3>
+              <div className="space-y-4">
+                <Input
+                  label="Record Date *"
+                  type="date"
+                  value={growthFormData.recordDate}
+                  onChange={(e) => setGrowthFormData({ ...growthFormData, recordDate: e.target.value })}
+                  required
+                />
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="Weight (kg) *"
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    max="200"
+                    value={growthFormData.weightKg}
+                    onChange={(e) => setGrowthFormData({ ...growthFormData, weightKg: e.target.value })}
+                    placeholder="e.g., 5.40"
+                    required
+                  />
+                  <Input
+                    label="Length (cm) *"
+                    type="number"
+                    step="0.1"
+                    min="10"
+                    max="200"
+                    value={growthFormData.lengthCm}
+                    onChange={(e) => setGrowthFormData({ ...growthFormData, lengthCm: e.target.value })}
+                    placeholder="e.g., 58.5"
+                    required
+                  />
+                  <Input
+                    label="Head Circ. (cm) *"
+                    type="number"
+                    step="0.1"
+                    min="10"
+                    max="100"
+                    value={growthFormData.headCircumferenceCm}
+                    onChange={(e) => setGrowthFormData({ ...growthFormData, headCircumferenceCm: e.target.value })}
+                    placeholder="e.g., 38.2"
+                    required
+                  />
+                </div>
+                <Textarea
+                  label="Clinical Notes"
+                  value={growthFormData.notes}
+                  onChange={(e) => setGrowthFormData({ ...growthFormData, notes: e.target.value })}
+                  placeholder="Any clinical observation notes..."
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => { setShowLogGrowthModal(false); setSelectedChildForGrowth(null); }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={actionLoading}>
+                {actionLoading ? 'Saving...' : 'Save Growth Record'}
               </Button>
             </div>
           </form>
