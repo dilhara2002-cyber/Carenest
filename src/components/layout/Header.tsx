@@ -32,6 +32,28 @@ interface MotherProfile {
   };
 }
 
+interface MidwifeProfile {
+  id: string;
+  mohRegistrationNumber: string | null;
+  nicNumber: string | null;
+  assignedMOHArea: string | null;
+  user: {
+    name: string;
+    email: string;
+    phone: string | null;
+    address: string | null;
+  };
+}
+
+interface AdminProfile {
+  user: {
+    name: string;
+    email: string;
+    phone: string | null;
+    address: string | null;
+  };
+}
+
 export function Header() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -40,6 +62,8 @@ export function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [motherProfile, setMotherProfile] = useState<MotherProfile | null>(null);
+  const [midwifeProfile, setMidwifeProfile] = useState<MidwifeProfile | null>(null);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -84,15 +108,61 @@ export function Header() {
     }
   };
 
-  const handleProfileClick = () => {
-    setIsProfileOpen(true);
-    if (!motherProfile) {
-      fetchMotherProfile();
+  const fetchMidwifeProfile = async () => {
+    if (!session?.user?.midwifeId) return;
+    
+    setProfileLoading(true);
+    try {
+      const res = await fetch(`/api/midwives/${session.user.midwifeId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMidwifeProfile(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch midwife profile:', error);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
-  const handleEditProfile = () => {
+  const fetchAdminProfile = async () => {
+    // Admin profile data comes directly from session
+    // No additional API call needed
+    if (session?.user) {
+      setAdminProfile({
+        user: {
+          name: session.user.name || '',
+          email: session.user.email || '',
+          phone: null, // Not available in session, would need separate fetch if required
+          address: null, // Not available in session, would need separate fetch if required
+        }
+      });
+    }
+  };
+
+  const handleProfileClick = () => {
+    setIsProfileOpen(true);
+    
+    // Always refetch profile to get latest data
+    if (session?.user?.role === 'MOTHER') {
+      fetchMotherProfile();
+    } else if (session?.user?.role === 'MIDWIFE') {
+      fetchMidwifeProfile();
+    } else if (session?.user?.role === 'ADMIN') {
+      fetchAdminProfile();
+    }
+  };
+
+  const handleCloseProfile = () => {
     setIsProfileOpen(false);
+    // Clear cached profile data so it's fresh next time
+    setMotherProfile(null);
+    setMidwifeProfile(null);
+    setAdminProfile(null);
+  };
+
+  const handleEditProfile = () => {
+    handleCloseProfile(); // Use the proper close handler to clear cache
     router.push('/settings');
   };
 
@@ -276,12 +346,12 @@ export function Header() {
       </div>
 
       {/* Profile Modal */}
-      <Modal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} size="lg">
+      <Modal isOpen={isProfileOpen} onClose={handleCloseProfile} size="lg">
         {profileLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600"></div>
           </div>
-        ) : motherProfile ? (
+        ) : session?.user?.role === 'MOTHER' && motherProfile ? (
           <div className="space-y-6">
             {/* Avatar and Name Header */}
             <div className="flex flex-col items-center space-y-3">
@@ -363,7 +433,7 @@ export function Header() {
             {/* Action Buttons */}
             <div className="flex gap-3 border-t pt-4">
               <button
-                onClick={() => setIsProfileOpen(false)}
+                onClick={handleCloseProfile}
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Close
@@ -371,6 +441,132 @@ export function Header() {
               <button
                 onClick={handleEditProfile}
                 className="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+              >
+                Edit Profile
+              </button>
+            </div>
+          </div>
+        ) : session?.user?.role === 'MIDWIFE' && midwifeProfile ? (
+          <div className="space-y-6">
+            {/* Avatar and Name Header */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-2 border-purple-300">
+                <span className="text-purple-700 font-bold text-3xl">
+                  {midwifeProfile.user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900">{midwifeProfile.user.name}</h2>
+                <p className="text-sm text-gray-600 mt-1">MIDWIFE</p>
+              </div>
+            </div>
+
+            {/* MOH Registration Number - Prominent Badge */}
+            {midwifeProfile.mohRegistrationNumber && (
+              <div className="bg-purple-50 border-2 border-purple-200 p-4 rounded-lg text-center">
+                <p className="text-xs font-semibold text-purple-700 uppercase tracking-widest mb-2">MOH Registration Number</p>
+                <p className="text-2xl font-bold text-purple-900">{midwifeProfile.mohRegistrationNumber}</p>
+              </div>
+            )}
+
+            {/* Profile Details - 2 Column Grid */}
+            <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              {/* Email */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Email</p>
+                <p className="text-sm text-gray-900 font-medium">{midwifeProfile.user.email}</p>
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Phone Number</p>
+                <p className="text-sm text-gray-900 font-medium">{midwifeProfile.user.phone || '-'}</p>
+              </div>
+
+              {/* Assigned MOH Area */}
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Assigned MOH Area</p>
+                <p className="text-sm text-gray-900 font-medium">{midwifeProfile.assignedMOHArea || '-'}</p>
+              </div>
+
+              {/* Address - Full Width */}
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Address</p>
+                <p className="text-sm text-gray-900 font-medium">{midwifeProfile.user.address || '-'}</p>
+              </div>
+
+              {/* NIC Number - If Available */}
+              {midwifeProfile.nicNumber && (
+                <div className="col-span-2">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">NIC Number</p>
+                  <p className="text-sm text-gray-900 font-medium">{midwifeProfile.nicNumber}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 border-t pt-4">
+              <button
+                onClick={handleCloseProfile}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleEditProfile}
+                className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+              >
+                Edit Profile
+              </button>
+            </div>
+          </div>
+        ) : session?.user?.role === 'ADMIN' && adminProfile ? (
+          <div className="space-y-6">
+            {/* Avatar and Name Header */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border-2 border-blue-300">
+                <span className="text-blue-700 font-bold text-3xl">
+                  {adminProfile.user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900">{adminProfile.user.name}</h2>
+                <p className="text-sm text-gray-600 mt-1">ADMINISTRATOR</p>
+              </div>
+            </div>
+
+            {/* Profile Details - 2 Column Grid */}
+            <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              {/* Email */}
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Email</p>
+                <p className="text-sm text-gray-900 font-medium">{adminProfile.user.email}</p>
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Phone Number</p>
+                <p className="text-sm text-gray-900 font-medium">{adminProfile.user.phone || '-'}</p>
+              </div>
+
+              {/* Address - Full Width */}
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Address</p>
+                <p className="text-sm text-gray-900 font-medium">{adminProfile.user.address || '-'}</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 border-t pt-4">
+              <button
+                onClick={handleCloseProfile}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleEditProfile}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
               >
                 Edit Profile
               </button>
