@@ -14,13 +14,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
     
     const variants = {
-      default: 'bg-teal-600 text-white hover:bg-teal-700 focus-visible:ring-teal-500',
-      destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
-      outline: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus-visible:ring-teal-500',
-      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500',
-      ghost: 'text-gray-900 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-500',
-      link: 'text-teal-600 underline-offset-4 hover:underline focus-visible:ring-teal-500',
+      default: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500 cursor-pointer',
+      destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 cursor-pointer',
+      danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 cursor-pointer',
+      outline: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus-visible:ring-blue-500 cursor-pointer',
+      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500 cursor-pointer',
+      ghost: 'text-gray-900 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-500 cursor-pointer',
+      link: 'text-blue-600 underline-offset-4 hover:underline focus-visible:ring-blue-500 cursor-pointer',
     };
 
     const sizes = {
