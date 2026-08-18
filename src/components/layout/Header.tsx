@@ -434,19 +434,14 @@ export function Header() {
             {/* Action Buttons */}
             <div className="flex gap-3 border-t pt-4">
               <button
-
                 onClick={handleCloseProfile}
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-=======
-                onClick={() => setIsProfileOpen(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-
               >
                 Close
               </button>
               <button
                 onClick={handleEditProfile}
-                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                className="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
               >
                 Edit Profile
               </button>
