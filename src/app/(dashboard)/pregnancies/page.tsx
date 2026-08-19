@@ -95,7 +95,7 @@ export default function PregnanciesPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, isMother, session?.user?.motherId]);
 
   const fetchMothers = async () => {
     try {
