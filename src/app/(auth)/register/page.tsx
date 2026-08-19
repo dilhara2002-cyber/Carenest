@@ -101,6 +101,7 @@ export default function RegisterPage() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                     placeholder="Your full name"
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -119,6 +120,7 @@ export default function RegisterPage() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                     placeholder="your@email.com"
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -139,11 +141,13 @@ export default function RegisterPage() {
                     className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                     placeholder="Min 6 characters"
                     required
+                    suppressHydrationWarning
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    suppressHydrationWarning
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -164,6 +168,7 @@ export default function RegisterPage() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                     placeholder="Repeat password"
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -183,6 +188,7 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                     placeholder="0771234567"
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -197,6 +203,7 @@ export default function RegisterPage() {
                   value={formData.dateOfBirth}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -211,6 +218,7 @@ export default function RegisterPage() {
                   value={formData.bloodGroup}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  suppressHydrationWarning
                 >
                   <option value="">Select blood group</option>
                   {bloodGroups.map((bg) => (
@@ -230,6 +238,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Emergency phone"
+                  suppressHydrationWarning
                 />
               </div>
             </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { FileText, Calendar, Filter, Download, Trash2, ShieldCheck, AlertCircle, RefreshCw, EyeOff, Upload, Clock } from 'lucide-react';
+import { FileText, Calendar, Filter, Download, Trash2, ShieldCheck, AlertCircle, RefreshCw, EyeOff, Upload, Clock, Layers } from 'lucide-react';
 
 interface DocumentType {
   id: string;

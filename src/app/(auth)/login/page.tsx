@@ -85,6 +85,7 @@ export default function LoginPage() {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder:text-gray-400"
                   placeholder="Enter your email"
                   required
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -101,12 +102,14 @@ export default function LoginPage() {
                   className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900 placeholder:text-gray-400"
                   placeholder="Enter your password"
                   required
+                  suppressHydrationWarning
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  suppressHydrationWarning
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
