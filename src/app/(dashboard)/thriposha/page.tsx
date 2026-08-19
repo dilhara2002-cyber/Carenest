@@ -465,19 +465,23 @@ export default function ThriposhaPage() {
                   {(['YELLOW', 'ORANGE', 'RED'] as const).map((color) => {
                     const cc = PACKET_COLOR_CONFIG[color];
                     const isSelected = form.packetType === color;
+                    const isDisabled = (form.recipientType === 'PREGNANT_MOTHER' || form.recipientType === 'LACTATING_MOTHER') && color !== 'YELLOW';
                     return (
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setForm({ ...form, packetType: color })}
+                        disabled={isDisabled}
+                        onClick={() => !isDisabled && setForm({ ...form, packetType: color })}
                         className={`flex-1 flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border-2 transition-all duration-200 ${
-                          isSelected
+                          isDisabled
+                            ? 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed opacity-50'
+                            : isSelected
                             ? `${cc.bg} ${cc.border} ${cc.text} shadow-sm scale-[1.02]`
                             : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
                         }`}
                       >
                         <span className="text-lg">{cc.emoji}</span>
-                        <span className={`text-xs font-bold ${isSelected ? cc.text : 'text-gray-500'}`}>{cc.label}</span>
+                        <span className={`text-xs font-bold ${isDisabled ? 'text-gray-400' : isSelected ? cc.text : 'text-gray-500'}`}>{cc.label}</span>
                       </button>
                     );
                   })}

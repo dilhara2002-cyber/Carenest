@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     else if (document.fileName.endsWith('.png')) contentType = 'image/png';
     else if (document.fileName.endsWith('.jpg') || document.fileName.endsWith('.jpeg')) contentType = 'image/jpeg';
 
-    return new NextResponse(buffer, {
+    return new NextResponse(Buffer.from(buffer), {
       status: 200,
       headers: {
         'Content-Type': contentType,
