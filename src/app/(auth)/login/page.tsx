@@ -57,11 +57,26 @@ export default function LoginPage() {
 
           <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
           <p className="mt-2 text-gray-600">Sign in to your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Ambient lights matching landing page */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#FBCFE8] to-[#E0E7FF] blur-[150px] opacity-40 mix-blend-multiply pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[55%] rounded-full bg-gradient-to-br from-[#E0E7FF] to-[#D1FAE5] blur-[130px] opacity-40 mix-blend-multiply pointer-events-none" />
+
+      <div className="relative z-10 max-w-md w-full space-y-8">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-6 group">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute -inset-1.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#F472B6] opacity-0 group-hover:opacity-100 transition duration-500 blur-sm" />
+              <Heart className="relative h-10 w-10 text-[#2563EB]" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-[#111827]">CareNest</span>
+          </Link>
+          <h2 className="text-3xl font-extrabold text-[#111827] tracking-tight">Welcome back</h2>
+          <p className="mt-2 text-[#6B7280]">Sign in to your account</p>
         </div>
 
         <div className="bg-white p-8 rounded-2xl shadow-md">
           <form onSubmit={handleSubmit} className="space-y-6">
-
             {error && !isActivationError && (
               <div className="p-3 rounded-md text-sm bg-red-50 text-red-600">
                 {error}

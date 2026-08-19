@@ -76,7 +76,7 @@ export default function MothersPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedMother, setSelectedMother] = useState<Mother | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [assignedMidwifeSearch, setAssignedMidwifeSearch] = useState('');
+  const [carePlanFilter, setCarePlanFilter] = useState('');
   const [accountStatus, setAccountStatus] = useState('all');
   const [bloodGroupFilter, setBloodGroupFilter] = useState('');
   const [midwifeFilterId, setMidwifeFilterId] = useState('');
@@ -104,7 +104,7 @@ export default function MothersPage() {
     try {
       const params = new URLSearchParams();
       if (searchTerm.trim()) params.set('search', searchTerm.trim());
-      if (assignedMidwifeSearch.trim()) params.set('assignedMidwife', assignedMidwifeSearch.trim());
+      if (carePlanFilter) params.set('carePlan', carePlanFilter);
       if (accountStatus !== 'all') params.set('accountStatus', accountStatus);
       if (bloodGroupFilter) params.set('bloodGroup', bloodGroupFilter);
       if (midwifeFilterId) params.set('midwifeId', midwifeFilterId);
@@ -132,7 +132,7 @@ export default function MothersPage() {
 
   useEffect(() => {
     fetchMothers();
-  }, [searchTerm, assignedMidwifeSearch, accountStatus, bloodGroupFilter, midwifeFilterId]);
+  }, [searchTerm, carePlanFilter, accountStatus, bloodGroupFilter, midwifeFilterId]);
 
   useEffect(() => {
     fetchMidwives();
@@ -429,7 +429,7 @@ export default function MothersPage() {
     selectedMotherLatitude !== null && selectedMotherLongitude !== null;
   const hasActiveFilters =
     Boolean(searchTerm.trim()) ||
-    Boolean(assignedMidwifeSearch.trim()) ||
+    Boolean(carePlanFilter) ||
     accountStatus !== 'all' ||
     Boolean(bloodGroupFilter) ||
     Boolean(midwifeFilterId);
@@ -482,8 +482,8 @@ export default function MothersPage() {
                     <Badge variant="danger">Inactive</Badge>
                   )}
                 </TableCell>
-                <TableCell>
-                  <div className="flex gap-1 flex-wrap">
+                <TableCell className="min-w-[130px]">
+                  <div className="grid grid-cols-3 gap-1.5 w-max">
                     <Button
                       size="sm"
                       variant="outline"
@@ -526,9 +526,9 @@ export default function MothersPage() {
                           disabled={actionLoading}
                         >
                           {mother.user?.isActive !== false ? (
-                            <ToggleRight className="h-4 w-4" />
+                            <ToggleRight className="h-4 w-4 text-emerald-600" />
                           ) : (
-                            <ToggleLeft className="h-4 w-4" />
+                            <ToggleLeft className="h-4 w-4 text-amber-600" />
                           )}
                         </Button>
                         <Button
@@ -599,22 +599,27 @@ export default function MothersPage() {
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <input
-                type="text"
-                placeholder="Assigned midwife name..."
-                value={assignedMidwifeSearch}
-                onChange={(e) => setAssignedMidwifeSearch(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
               <Select
-                value={midwifeFilterId}
-                onChange={(e) => setMidwifeFilterId(e.target.value)}
-                options={midwives.map((mw) => ({
-                  value: mw.id,
-                  label: mw.user.name,
-                }))}
-                placeholder="Filter by midwife"
+                value={carePlanFilter}
+                onChange={(e) => setCarePlanFilter(e.target.value)}
+                options={[
+                  { value: 'normal', label: 'Normal Care' },
+                  { value: 'special', label: 'Special Attention' },
+                ]}
+                placeholder="Care plan"
               />
+              {/* Only show midwife filter for Admin role */}
+              {isAdmin && (
+                <Select
+                  value={midwifeFilterId}
+                  onChange={(e) => setMidwifeFilterId(e.target.value)}
+                  options={midwives.map((mw) => ({
+                    value: mw.id,
+                    label: mw.user.name,
+                  }))}
+                  placeholder="Filter by midwife"
+                />
+              )}
               <Select
                 value={accountStatus}
                 onChange={(e) => setAccountStatus(e.target.value)}
@@ -631,13 +636,13 @@ export default function MothersPage() {
                 placeholder="Blood group"
               />
             </div>
-            {hasActiveFilters && (
-              <div className="flex justify-end">
+            <div className="flex justify-end">
+              {hasActiveFilters && (
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSearchTerm('');
-                    setAssignedMidwifeSearch('');
+                    setCarePlanFilter('');
                     setAccountStatus('all');
                     setBloodGroupFilter('');
                     setMidwifeFilterId('');
@@ -645,8 +650,8 @@ export default function MothersPage() {
                 >
                   Clear Filters
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

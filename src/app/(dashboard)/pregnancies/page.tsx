@@ -277,8 +277,8 @@ export default function PregnanciesPage() {
         pillLabel="Pregnancy"
         actions={(
           <>
-            <Button variant="outline" className="font-semibold" onClick={fetchPregnancies}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="!bg-white hover:!bg-gray-100 !text-gray-900 font-bold rounded-xl !border !border-gray-200 shadow-sm transition-all cursor-pointer" onClick={fetchPregnancies}>
+              <RefreshCw className="h-4 w-4 mr-2 text-gray-700" />
               Refresh
             </Button>
             {canManage && (
@@ -396,8 +396,8 @@ export default function PregnanciesPage() {
                     <div>
                       {canManage && pregnancy.mother && (
                         <>
-                          <h3 className="font-semibold text-lg text-gray-900">{pregnancy.mother.user.name}</h3>
-                          <p className="text-sm text-gray-500">{pregnancy.mother.user.email}</p>
+                          <h3 className="font-bold text-lg text-gray-900">{pregnancy.mother.user.name}</h3>
+                          <p className="text-sm text-gray-700 font-medium">{pregnancy.mother.user.email}</p>
                         </>
                       )}
                       {isMother && (
@@ -408,7 +408,7 @@ export default function PregnanciesPage() {
                   <div className="flex items-center gap-2">
                     {pregnancy.highRisk && (
                       <Badge variant="danger">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        <AlertTriangle className="h-3.5 w-3.5 mr-1" />
                         High Risk
                       </Badge>
                     )}
@@ -423,27 +423,27 @@ export default function PregnanciesPage() {
 
                 {/* Progress Bar (for active pregnancies) */}
                 {pregnancy.status === 'ACTIVE' && (pregnancy.progress || pregnancy.currentWeek) && (
-                  <div className="mb-4">
+                  <div className="mb-4 bg-gray-50/80 p-3 rounded-xl border border-gray-200">
                     {pregnancy.progress ? (
                       <>
                         <div className="flex justify-between text-sm mb-2">
-                          <span className="font-medium">
+                          <span className="font-bold text-gray-900">
                             Week {pregnancy.progress.weeks}, Day {pregnancy.progress.days} · Month {pregnancy.progress.month}
                           </span>
-                          <span className="text-gray-500">{pregnancy.progress.trimesterLabel}</span>
+                          <span className="text-pink-700 font-bold">{pregnancy.progress.trimesterLabel}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div className="w-full bg-gray-200 rounded-full h-3.5 overflow-hidden mb-1">
                           <div
-                            className={`h-3 rounded-full transition-all ${pregnancy.progress.isOverdue
-                                ? 'bg-gradient-to-r from-red-400 to-red-600'
-                                : 'bg-gradient-to-r from-pink-400 to-pink-600'
+                            className={`h-3.5 rounded-full transition-all ${pregnancy.progress.isOverdue
+                                ? 'bg-gradient-to-r from-red-500 to-red-600'
+                                : 'bg-gradient-to-r from-pink-500 to-pink-600'
                               }`}
                             style={{ width: `${pregnancy.progress.percentComplete}%` }}
                           />
                         </div>
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs font-semibold text-gray-700 mt-1.5">
                           <span>EDD: {formatDate(pregnancy.progress.expectedDeliveryDate)}</span>
-                          <span>
+                          <span className={pregnancy.progress.isOverdue ? 'text-red-700 font-bold' : 'text-gray-800'}>
                             {pregnancy.progress.isOverdue
                               ? '⚠️ Overdue'
                               : `${pregnancy.progress.daysRemaining} days remaining`}
@@ -453,12 +453,12 @@ export default function PregnanciesPage() {
                     ) : (
                       <>
                         <div className="flex justify-between text-sm mb-2">
-                          <span className="font-medium">Week {pregnancy.currentWeek} of 40</span>
-                          <span className="text-gray-500">{getPregnancyTrimester(pregnancy.currentWeek!)}</span>
+                          <span className="font-bold text-gray-900">Week {pregnancy.currentWeek} of 40</span>
+                          <span className="text-pink-700 font-bold">{getPregnancyTrimester(pregnancy.currentWeek!)}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div className="w-full bg-gray-200 rounded-full h-3.5 overflow-hidden">
                           <div
-                            className="bg-gradient-to-r from-pink-400 to-pink-600 h-3 rounded-full transition-all"
+                            className="bg-gradient-to-r from-pink-500 to-pink-600 h-3.5 rounded-full transition-all"
                             style={{ width: `${Math.min((pregnancy.currentWeek! / 40) * 100, 100)}%` }}
                           />
                         </div>
@@ -469,18 +469,18 @@ export default function PregnanciesPage() {
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-gray-500 text-xs">Last Menstrual Period</p>
-                    <p className="font-medium text-gray-900">{formatDate(pregnancy.lastMenstrualPeriod) || 'N/A'}</p>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p className="text-gray-700 text-xs font-semibold uppercase tracking-wider mb-0.5">Last Menstrual Period</p>
+                    <p className="font-bold text-gray-900 text-base">{formatDate(pregnancy.lastMenstrualPeriod) || 'N/A'}</p>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-gray-500 text-xs">Expected Delivery</p>
-                    <p className="font-medium text-gray-900">{formatDate(pregnancy.expectedDeliveryDate) || 'N/A'}</p>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p className="text-gray-700 text-xs font-semibold uppercase tracking-wider mb-0.5">Expected Delivery</p>
+                    <p className="font-bold text-gray-900 text-base">{formatDate(pregnancy.expectedDeliveryDate) || 'N/A'}</p>
                   </div>
                   {canManage && pregnancy.mother?.assignedMidwife && (
-                    <div className="bg-gray-50 p-3 rounded-lg col-span-2">
-                      <p className="text-gray-500 text-xs">Assigned Midwife</p>
-                      <p className="font-medium text-gray-900">{pregnancy.mother.assignedMidwife.user.name}</p>
+                    <div className="bg-gray-50 p-3 rounded-lg col-span-2 border border-gray-200">
+                      <p className="text-gray-700 text-xs font-semibold uppercase tracking-wider mb-0.5">Assigned Midwife</p>
+                      <p className="font-bold text-gray-900 text-base">{pregnancy.mother.assignedMidwife.user.name}</p>
                     </div>
                   )}
                 </div>
@@ -696,52 +696,52 @@ export default function PregnanciesPage() {
           <div className="space-y-6">
             {/* Mother Info */}
             {selectedPregnancy.mother && (
-              <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
                 <div className="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center">
-                  <span className="text-purple-700 font-bold text-lg">
+                  <span className="text-purple-800 font-extrabold text-xl">
                     {selectedPregnancy.mother.user.name.charAt(0)}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-semibold">{selectedPregnancy.mother.user.name}</h3>
-                  <p className="text-sm text-gray-500">{selectedPregnancy.mother.user.email}</p>
+                  <h3 className="font-bold text-gray-900 text-base">{selectedPregnancy.mother.user.name}</h3>
+                  <p className="text-sm font-medium text-gray-700">{selectedPregnancy.mother.user.email}</p>
                 </div>
               </div>
             )}
 
             {/* Pregnancy Progress */}
             {selectedPregnancy.status === 'ACTIVE' && (selectedPregnancy.progress || selectedPregnancy.currentWeek) && (
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2">Progress</h4>
+              <div className="bg-gray-50/90 p-4 rounded-xl border border-gray-200">
+                <h4 className="font-bold text-gray-900 mb-2">Pregnancy Progress</h4>
                 {selectedPregnancy.progress ? (
                   <>
-                    <div className="flex justify-between text-sm mb-2">
+                    <div className="flex justify-between text-sm font-semibold text-gray-800 mb-2">
                       <span>Week {selectedPregnancy.progress.weeks}, Day {selectedPregnancy.progress.days} of 40</span>
-                      <span className="text-gray-500">{selectedPregnancy.progress.trimesterLabel}</span>
+                      <span className="text-pink-700 font-bold">{selectedPregnancy.progress.trimesterLabel}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3 overflow-hidden">
                       <div
                         className={`h-4 rounded-full ${selectedPregnancy.progress.isOverdue
-                            ? 'bg-gradient-to-r from-red-400 to-red-600'
-                            : 'bg-gradient-to-r from-pink-400 to-pink-600'
+                            ? 'bg-gradient-to-r from-red-500 to-red-600'
+                            : 'bg-gradient-to-r from-pink-500 to-pink-600'
                           }`}
                         style={{ width: `${selectedPregnancy.progress.percentComplete}%` }}
                       />
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-sm">
-                      <div className="bg-purple-50 p-2 rounded-lg text-center">
-                        <span className="text-purple-600 text-xs">Month</span>
-                        <p className="font-bold text-purple-900">{selectedPregnancy.progress.month}</p>
+                      <div className="bg-purple-100/70 p-2.5 rounded-lg text-center border border-purple-200">
+                        <span className="text-purple-800 text-xs font-semibold uppercase tracking-wider block mb-0.5">Month</span>
+                        <p className="font-extrabold text-base text-purple-950">{selectedPregnancy.progress.month}</p>
                       </div>
-                      <div className="bg-teal-50 p-2 rounded-lg text-center">
-                        <span className="text-teal-600 text-xs">EDD</span>
-                        <p className="font-bold text-xs text-teal-900">{formatDate(selectedPregnancy.progress.expectedDeliveryDate)}</p>
+                      <div className="bg-teal-100/70 p-2.5 rounded-lg text-center border border-teal-200">
+                        <span className="text-teal-800 text-xs font-semibold uppercase tracking-wider block mb-0.5">EDD</span>
+                        <p className="font-extrabold text-xs text-teal-950">{formatDate(selectedPregnancy.progress.expectedDeliveryDate)}</p>
                       </div>
-                      <div className={`p-2 rounded-lg text-center ${selectedPregnancy.progress.isOverdue ? 'bg-red-50' : 'bg-green-50'}`}>
-                        <span className={`text-xs ${selectedPregnancy.progress.isOverdue ? 'text-red-600' : 'text-green-600'}`}>
+                      <div className={`p-2.5 rounded-lg text-center border ${selectedPregnancy.progress.isOverdue ? 'bg-red-100/70 border-red-200' : 'bg-emerald-100/70 border-emerald-200'}`}>
+                        <span className={`text-xs font-semibold uppercase tracking-wider block mb-0.5 ${selectedPregnancy.progress.isOverdue ? 'text-red-800' : 'text-emerald-800'}`}>
                           {selectedPregnancy.progress.isOverdue ? 'Overdue' : 'Days Left'}
                         </span>
-                        <p className={`font-bold ${selectedPregnancy.progress.isOverdue ? 'text-red-900' : 'text-green-900'}`}>
+                        <p className={`font-extrabold text-base ${selectedPregnancy.progress.isOverdue ? 'text-red-950' : 'text-emerald-950'}`}>
                           {selectedPregnancy.progress.daysRemaining}
                         </p>
                       </div>
@@ -749,13 +749,13 @@ export default function PregnanciesPage() {
                   </>
                 ) : (
                   <>
-                    <div className="flex justify-between text-sm mb-2">
+                    <div className="flex justify-between text-sm font-semibold text-gray-800 mb-2">
                       <span>Week {selectedPregnancy.currentWeek} of 40</span>
-                      <span className="text-gray-500">{getPregnancyTrimester(selectedPregnancy.currentWeek!)}</span>
+                      <span className="text-pink-700 font-bold">{getPregnancyTrimester(selectedPregnancy.currentWeek!)}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4">
+                    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                       <div
-                        className="bg-gradient-to-r from-pink-400 to-pink-600 h-4 rounded-full"
+                        className="bg-gradient-to-r from-pink-500 to-pink-600 h-4 rounded-full"
                         style={{ width: `${Math.min((selectedPregnancy.currentWeek! / 40) * 100, 100)}%` }}
                       />
                     </div>
@@ -766,31 +766,31 @@ export default function PregnanciesPage() {
 
             {/* Details */}
             <div>
-              <h4 className="font-medium text-gray-700 mb-3">Details</h4>
+              <h4 className="font-bold text-gray-900 mb-3 text-base">Pregnancy Details</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Status</p>
+                <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Status</p>
                   <Badge variant={selectedPregnancy.status === 'ACTIVE' ? 'success' : 'default'}>
                     {selectedPregnancy.status}
                   </Badge>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Risk Level</p>
+                <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Risk Level</p>
                   <Badge variant={selectedPregnancy.highRisk ? 'danger' : 'success'}>
                     {selectedPregnancy.highRisk ? 'High Risk' : 'Normal'}
                   </Badge>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Last Menstrual Period</p>
-                  <p className="font-medium">{formatDate(selectedPregnancy.lastMenstrualPeriod) || 'N/A'}</p>
+                <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Last Menstrual Period</p>
+                  <p className="font-bold text-gray-900 text-base">{formatDate(selectedPregnancy.lastMenstrualPeriod) || 'N/A'}</p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-500">Expected Delivery</p>
-                  <p className="font-medium">{formatDate(selectedPregnancy.expectedDeliveryDate) || 'N/A'}</p>
+                <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Expected Delivery</p>
+                  <p className="font-bold text-gray-900 text-base">{formatDate(selectedPregnancy.expectedDeliveryDate) || 'N/A'}</p>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg col-span-2">
-                  <p className="text-gray-500">Registered On</p>
-                  <p className="font-medium">{formatDate(selectedPregnancy.createdAt)}</p>
+                <div className="bg-gray-50 p-3.5 rounded-xl col-span-2 border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Registered On</p>
+                  <p className="font-bold text-gray-900 text-base">{formatDate(selectedPregnancy.createdAt)}</p>
                 </div>
               </div>
             </div>
@@ -798,8 +798,8 @@ export default function PregnanciesPage() {
             {/* Medical Notes */}
             {selectedPregnancy.medicalNotes && (
               <div>
-                <h4 className="font-medium text-gray-700 mb-2">Medical Notes</h4>
-                <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                <h4 className="font-bold text-gray-900 mb-2 text-base">Medical Notes</h4>
+                <p className="text-sm text-blue-950 font-medium bg-blue-50/80 p-3.5 rounded-xl border border-blue-200 leading-relaxed">
                   {selectedPregnancy.medicalNotes}
                 </p>
               </div>
@@ -808,8 +808,8 @@ export default function PregnanciesPage() {
             {/* High Risk Reasons */}
             {selectedPregnancy.highRisk && selectedPregnancy.highRiskReasons && (
               <div>
-                <h4 className="font-medium text-red-700 mb-2">High Risk Reasons</h4>
-                <p className="text-sm text-red-800 bg-red-50 p-3 rounded-lg border border-red-200">
+                <h4 className="font-bold text-red-900 mb-2 text-base">High Risk Reasons</h4>
+                <p className="text-sm text-red-950 font-medium bg-red-50/80 p-3.5 rounded-xl border border-red-200 leading-relaxed">
                   {selectedPregnancy.highRiskReasons}
                 </p>
               </div>

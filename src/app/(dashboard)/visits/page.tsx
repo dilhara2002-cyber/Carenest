@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Textarea, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
-import { Calendar, Plus, CheckCircle, Clock, XCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { Calendar, Plus, CheckCircle, Clock, XCircle, AlertTriangle, Sparkles, RefreshCw } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate, formatDateTime } from '@/lib/utils';
 
 interface Child {
@@ -21,6 +22,10 @@ interface Mother {
     email: string;
   };
   children: Child[];
+  pregnancies?: {
+    id: string;
+    status: string;
+  }[];
 }
 
 interface Visit {
@@ -107,6 +112,24 @@ export default function VisitsPage() {
       }
     }
   };
+
+  // Filter mothers based on active tab
+  const getFilteredMothersForTab = () => {
+    if (activeTab === 'PRENATAL') {
+      // Show only mothers with ACTIVE pregnancies
+      return mothers.filter(m => 
+        m.pregnancies?.some(p => p.status === 'ACTIVE')
+      );
+    } else {
+      // Show only mothers with DELIVERED pregnancies (who have given birth)
+      return mothers.filter(m => 
+        m.pregnancies?.some(p => p.status === 'DELIVERED')
+      );
+    }
+  };
+
+  // Get filtered mothers for the current tab
+  const filteredMothers = getFilteredMothersForTab();
 
   const fetchCurrentMotherDetails = async () => {
     if (session?.user?.role === 'MOTHER' && session.user.motherId) {
@@ -587,19 +610,49 @@ export default function VisitsPage() {
   const pastPostnatal = postnatalVisits.filter(v => v.status !== 'SCHEDULED' || new Date(v.visitDate) < new Date());
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Visit Management</h1>
-          <p className="text-gray-500">Schedule and track prenatal & postnatal visits</p>
-        </div>
-        {session?.user?.role !== 'MOTHER' && (
-          <Button onClick={() => setShowModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Schedule Visit
-          </Button>
-        )}
-      </div>
+    <div className="relative min-h-screen">
+      {/* Maternal Care Wallpaper Background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/admin-wallpaper.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          opacity: 0.12,
+        }}
+      />
+      {/* Soft gradient overlay for better contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/40 via-white/60 to-pink-50/40" />
+
+      <div className="space-y-6 relative z-10">
+        <DashboardHero
+          title="Visit Management"
+          subtitle="Schedule and track prenatal & postnatal visits"
+          pillLabel="Visits"
+          actions={(
+            <>
+              <Button
+                variant="outline"
+                className="!bg-white hover:!bg-gray-100 !text-gray-900 font-bold rounded-xl !border !border-gray-200 shadow-sm transition-all cursor-pointer"
+                onClick={fetchVisits}
+              >
+                <RefreshCw className="h-4 w-4 mr-2 text-gray-700" />
+                Refresh
+              </Button>
+              {session?.user?.role !== 'MOTHER' && (
+                <Button
+                  className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-lg transition-all"
+                  onClick={() => setShowModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Schedule Visit
+                </Button>
+              )}
+            </>
+          )}
+        />
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
@@ -670,7 +723,7 @@ export default function VisitsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mothers.map((mother) => {
+                    {filteredMothers.map((mother) => {
                       const momAntenatalVisits = antenatalVisits.filter(v => v.motherId === mother.id);
                       
                       const lastMomVisit = momAntenatalVisits
@@ -842,7 +895,7 @@ export default function VisitsPage() {
                     label="Select Mother"
                     value={selectedMotherId}
                     onChange={(e) => setSelectedMotherId(e.target.value)}
-                    options={mothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
+                    options={filteredMothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
                     placeholder="Choose a mother..."
                   />
                 </div>
@@ -852,7 +905,7 @@ export default function VisitsPage() {
                       label="Select Child"
                       value={selectedChildId}
                       onChange={(e) => setSelectedChildId(e.target.value)}
-                      options={(mothers.find(m => m.id === selectedMotherId)?.children || []).map(c => ({
+                      options={(filteredMothers.find(m => m.id === selectedMotherId)?.children || []).map(c => ({
                         value: c.id,
                         label: `${c.name} (${formatDate(c.birthDate)})`,
                       }))}
@@ -965,7 +1018,7 @@ export default function VisitsPage() {
             label="Mother"
             value={formData.motherId}
             onChange={(e) => setFormData({ ...formData, motherId: e.target.value })}
-            options={mothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
+            options={filteredMothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
             placeholder="Select mother"
             required
             disabled={session?.user?.role === 'MOTHER'}
@@ -989,7 +1042,7 @@ export default function VisitsPage() {
                 options={(
                   (session?.user?.role === 'MOTHER'
                     ? currentMotherDetails?.children
-                    : mothers.find(m => m.id === formData.motherId)?.children) || []
+                    : filteredMothers.find(m => m.id === formData.motherId)?.children) || []
                 ).map(c => ({ value: c.id, label: c.name }))}
                 placeholder="Select child"
                 required
@@ -1029,7 +1082,7 @@ export default function VisitsPage() {
           {formData.visitType === 'ANTENATAL' && formData.motherId && (
             <div className="p-3 bg-gray-50 border rounded text-sm text-gray-700">
               {(() => {
-                const mom = mothers.find(m => m.id === formData.motherId);
+                const mom = filteredMothers.find(m => m.id === formData.motherId);
                 return (
                   <p>
                     Mother Care plan:{' '}
@@ -1077,6 +1130,7 @@ export default function VisitsPage() {
           </div>
         </form>
       </Modal>
+      </div>
     </div>
   );
 }

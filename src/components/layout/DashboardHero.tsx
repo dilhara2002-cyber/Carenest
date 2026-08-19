@@ -36,16 +36,16 @@ export default function DashboardHero({ title, subtitle, pillLabel, pillColorCla
           <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">{title}</h1>
 
           {subtitle && (
-            <p className="text-[#6B7280] text-base max-w-lg leading-relaxed font-light">
+            <p className="text-slate-300 text-base max-w-lg leading-relaxed font-light">
               {subtitle}
             </p>
           )}
         </div>
 
-        <div className="hidden lg:flex flex-col items-end gap-3 font-sans shrink-0">
+        <div className="flex flex-wrap lg:flex-col items-start lg:items-end gap-3 font-sans shrink-0 w-full lg:w-auto">
           {rightInfo}
           {actions && (
-            <div className="flex items-center gap-2">{actions}</div>
+            <div className="flex items-center gap-2.5 flex-wrap">{actions}</div>
           )}
         </div>
       </div>
