@@ -398,7 +398,7 @@ export default function MidwivesPage() {
             <>
               <Button
                 variant="outline"
-                className="font-bold rounded-xl border-white/20 text-white hover:bg-white/10 transition-colors"
+                className="!bg-white/15 hover:!bg-white/25 !text-white font-bold rounded-xl !border !border-white/40 backdrop-blur-md shadow-sm transition-all"
                 onClick={fetchMidwives}
               >
                 <RefreshCw className="h-4 w-4 mr-2 text-white" />

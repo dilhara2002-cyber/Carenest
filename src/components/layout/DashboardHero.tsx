@@ -43,10 +43,10 @@ export default function DashboardHero({ title, subtitle, pillLabel, pillColorCla
           )}
         </div>
 
-        <div className="hidden lg:flex flex-col items-end gap-3 font-sans shrink-0">
+        <div className="flex flex-wrap lg:flex-col items-start lg:items-end gap-3 font-sans shrink-0 w-full lg:w-auto">
           {rightInfo}
           {actions && (
-            <div className="flex items-center gap-2">{actions}</div>
+            <div className="flex items-center gap-2.5 flex-wrap">{actions}</div>
           )}
         </div>
       </div>
