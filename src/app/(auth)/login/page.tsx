@@ -47,21 +47,6 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Heart className="h-10 w-10 text-teal-600" />
-            <span className="text-2xl font-bold text-gray-900">CareNest</span>
-          </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-          <p className="mt-1 text-gray-600 text-sm">Sign in to your account</p>
-        </div>
-
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && !isActivationError && (
-              <div className="p-3 rounded-lg text-sm bg-rose-50 border border-rose-200 text-rose-700 font-medium">
     <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Ambient lights matching landing page */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#FBCFE8] to-[#E0E7FF] blur-[150px] opacity-40 mix-blend-multiply pointer-events-none" />
