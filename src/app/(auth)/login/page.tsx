@@ -37,7 +37,7 @@ export default function LoginPage() {
           setActivationPopupMessage(result.error);
         }
       } else {
-        router.push(result?.url ?? '/dashboard');
+        window.location.href = '/dashboard';
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -67,7 +67,6 @@ export default function LoginPage() {
 
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-[#E5E7EB]">
           <form onSubmit={handleSubmit} className="space-y-6">
-
             {error && !isActivationError && (
               <div className="p-3 rounded-lg text-sm bg-red-50 text-red-600 border border-red-100">
                 {error}
@@ -178,7 +177,6 @@ export default function LoginPage() {
         size="md"
       >
         <div className="space-y-4">
-
           <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
 
@@ -221,7 +219,6 @@ export default function LoginPage() {
               Got it
             </Button>
           </div>
-
         </div>
       </Modal>
     </div>
