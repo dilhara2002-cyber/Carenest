@@ -47,7 +47,6 @@ export default function LoginPage() {
   };
 
   return (
-    
     <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Ambient lights matching landing page */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#FBCFE8] to-[#E0E7FF] blur-[150px] opacity-40 mix-blend-multiply pointer-events-none" />
