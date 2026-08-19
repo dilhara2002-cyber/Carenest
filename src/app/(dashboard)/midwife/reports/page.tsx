@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Select } from '@/components/ui';
 import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle, Upload } from 'lucide-react';
 
-export default function ReportsPage() {
+export default function MidwifeReportsPage() {
   const { data: session } = useSession();
   const [reportType, setReportType] = useState('mothers');
   const [dateRange, setDateRange] = useState('month');
@@ -20,8 +20,6 @@ export default function ReportsPage() {
     name: string;
     createdAt: string;
   }[]>([]);
-  const [newDocTypeName, setNewDocTypeName] = useState('');
-  const [docTypeLoading, setDocTypeLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
   // Patient Documents States
@@ -40,10 +38,8 @@ export default function ReportsPage() {
   // Fetch initial data
   useEffect(() => {
     fetchMothers();
+    fetchDocumentTypes();
     fetchRecentDocuments();
-    if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MIDWIFE') {
-      fetchDocumentTypes();
-    }
   }, [session]);
 
   const fetchMothers = async () => {
@@ -82,55 +78,6 @@ export default function ReportsPage() {
       console.error('Failed to load recent documents');
     } finally {
       setLoadingRecent(false);
-    }
-  };
-
-  const handleCreateDocumentType = async () => {
-    if (!newDocTypeName.trim()) {
-      setError('Document type name is required');
-      return;
-    }
-
-    setDocTypeLoading(true);
-    setError('');
-
-    try {
-      const res = await fetch('/api/documents/types', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newDocTypeName.trim() })
-      });
-
-      if (res.ok || res.status === 201) {
-        setNewDocTypeName('');
-        await fetchDocumentTypes();
-      } else {
-        const data = await res.json();
-        setError(data.error || 'Failed to create document type');
-      }
-    } catch (err) {
-      setError('Error creating document type');
-    } finally {
-      setDocTypeLoading(false);
-    }
-  };
-
-  const handleDeleteDocumentType = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this document type?')) return;
-
-    try {
-      const res = await fetch(`/api/documents/types?id=${id}`, {
-        method: 'DELETE'
-      });
-
-      if (res.ok) {
-        await fetchDocumentTypes();
-      } else {
-        const data = await res.json();
-        setError(data.error || 'Failed to delete document type');
-      }
-    } catch (err) {
-      setError('Error deleting document type');
     }
   };
 
@@ -179,7 +126,7 @@ export default function ReportsPage() {
       if (res.ok) {
         setUploadFile(null);
         setUploadType('');
-        const fileInput = document.getElementById('admin-file-upload') as HTMLInputElement;
+        const fileInput = document.getElementById('midwife-file-upload') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
         
         await fetchMotherDocuments(selectedMotherId);
@@ -223,10 +170,10 @@ export default function ReportsPage() {
   };
 
   const reportTypes = [
-    { value: 'mothers', label: 'Mothers Report', icon: Users },
-    { value: 'visits', label: 'Visits Report', icon: Calendar },
+    { value: 'mothers', label: 'My Mothers Report', icon: Users },
+    { value: 'visits', label: 'My Visits Report', icon: Calendar },
     { value: 'vaccinations', label: 'Vaccinations Report', icon: Syringe },
-    { value: 'summary', label: 'Summary Report', icon: BarChart3 },
+    { value: 'summary', label: 'Activity Summary', icon: BarChart3 },
   ];
 
   const generateReport = async () => {
@@ -261,7 +208,7 @@ export default function ReportsPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${reportType}-report-${new Date().toISOString().split('T')[0]}.pdf`;
+        a.download = `my-${reportType}-report-${new Date().toISOString().split('T')[0]}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -283,84 +230,9 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-gray-500">Generate and download system reports</p>
+        <h1 className="text-2xl font-bold text-gray-900">Reports & Documents</h1>
+        <p className="text-gray-500">Generate reports and manage patient documents</p>
       </div>
-
-      {/* Document Type Management - ADMIN Only */}
-      {session?.user?.role === 'ADMIN' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Document Type Management</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded p-3 flex gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
-
-            {/* Create New Document Type */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-900">
-                Add New Document Type
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newDocTypeName}
-                  onChange={(e) => setNewDocTypeName(e.target.value)}
-                  placeholder="e.g., H15 Card, Blood Report, Anomaly Scan"
-                  onKeyPress={(e) => e.key === 'Enter' && handleCreateDocumentType()}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-                <Button
-                  onClick={handleCreateDocumentType}
-                  isLoading={docTypeLoading}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Type
-                </Button>
-              </div>
-            </div>
-
-            {/* Document Types List */}
-            {documentTypes.length > 0 && (
-              <div className="space-y-2 pt-4 border-t">
-                <label className="block text-sm font-medium text-gray-900">
-                  Existing Document Types
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {documentTypes.map((docType: { id: string; name: string; _count?: { documents: number } }) => (
-                    <div
-                      key={docType.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{docType.name}</p>
-                        {(docType._count?.documents ?? 0) > 0 && (
-                          <p className="text-xs text-gray-500">
-                            {docType._count?.documents} document(s)
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleDeleteDocumentType(docType.id)}
-                        disabled={(docType._count?.documents ?? 0) > 0}
-                        className="p-2 text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={(docType._count?.documents ?? 0) > 0 ? 'Cannot delete - has documents' : 'Delete type'}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Report Configuration */}
@@ -442,10 +314,10 @@ export default function ReportsPage() {
                       }`} />
                     <h4 className="font-medium">{report.label}</h4>
                     <p className="text-sm text-gray-500">
-                      {report.value === 'mothers' && 'List of registered mothers with details'}
-                      {report.value === 'visits' && 'Visit history and statistics'}
-                      {report.value === 'vaccinations' && 'Vaccination coverage report'}
-                      {report.value === 'summary' && 'Overall system summary'}
+                      {report.value === 'mothers' && 'List of mothers assigned to you'}
+                      {report.value === 'visits' && 'Your visit schedule and history'}
+                      {report.value === 'vaccinations' && 'Vaccination records for your mothers'}
+                      {report.value === 'summary' && 'Your professional activity summary'}
                     </p>
                   </div>
                 );
@@ -526,6 +398,13 @@ export default function ReportsPage() {
           <CardTitle>Patient Documents Management</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded p-3 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left: Upload Form */}
             <div className="space-y-4">
@@ -563,7 +442,7 @@ export default function ReportsPage() {
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-700">File (PDF, JPG, PNG)</label>
                   <input
-                    id="admin-file-upload"
+                    id="midwife-file-upload"
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => setUploadFile(e.target.files?.[0] || null)}

@@ -29,10 +29,15 @@ export async function GET(req: NextRequest) {
     const documentTypeIdParam = searchParams.get('documentTypeId');
     const motherIdParam = searchParams.get('motherId');
 
+    const limitParam = searchParams.get('limit');
+    
     // Build where clause with role-based filters
     interface WhereClause {
       motherId?: string;
       documentTypeId?: string;
+      mother?: {
+        assignedMidwifeId?: string;
+      };
       uploadedAt?: {
         gte?: Date;
         lte?: Date;
@@ -44,19 +49,15 @@ export async function GET(req: NextRequest) {
     // CRITICAL SECURITY: Role-based access control
     if (session.user.role === 'MOTHER') {
       // MOTHER role: STRICT ISOLATION - can only view own documents
-      // Ignore any passed motherId parameter to prevent data leakage
       where.motherId = session.user.motherId!;
     } else if (session.user.role === 'MIDWIFE') {
-      // MIDWIFE role: Can view documents for mothers in assigned zone
-      // TODO: Implement clinic/zone-based filtering based on midwife assignments
-      // For now, allow midwife to specify motherId (with validation)
+      // MIDWIFE role: Can view documents for assigned mothers only
+      where.mother = { assignedMidwifeId: session.user.midwifeId };
       if (motherIdParam) {
         where.motherId = motherIdParam;
-        // In production: validate that this mother is in the midwife's assigned zone
       }
     } else if (session.user.role === 'ADMIN') {
       // ADMIN role: Global access
-      // Allow optional motherId filter if specified
       if (motherIdParam) {
         where.motherId = motherIdParam;
       }
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Execute Prisma query with security filters
-    const documents = await prisma.document.findMany({
+    const queryOptions: any = {
       where,
       include: {
         documentType: true,
@@ -99,7 +100,13 @@ export async function GET(req: NextRequest) {
       orderBy: {
         uploadedAt: 'desc'
       }
-    });
+    };
+
+    if (limitParam && !isNaN(parseInt(limitParam))) {
+      queryOptions.take = parseInt(limitParam);
+    }
+
+    const documents = await prisma.document.findMany(queryOptions);
 
     return NextResponse.json({
       data: documents,
