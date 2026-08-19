@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import ChildGrowthWidget from '@/components/ChildGrowthWidget';
 import AssignedMidwifeCard, { type AssignedMidwife } from '@/components/AssignedMidwifeCard';
+import DashboardHero from '@/components/layout/DashboardHero';
 
 interface DashboardData {
   activePregnancy: {
@@ -97,47 +98,24 @@ export default function MotherDashboard() {
 
       <div className="space-y-6 relative z-10 min-h-screen">
 
-      {/* ── Hero Banner ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#111827] p-8 text-white">
-        {/* Ambient glow effects matching landing page */}
-        <div className="absolute top-0 right-[-10%] w-[50%] h-[120%] bg-gradient-to-l from-[#2563EB]/15 to-transparent rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-[-10%] w-[50%] h-[120%] bg-gradient-to-r from-[#F472B6]/12 to-transparent rounded-full blur-[100px] pointer-events-none" />
-
-        {/* Shimmer sweep */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
-        </div>
-
-        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div>
-            {/* Pink "live" pill — mirrors homepage/admin style with landing page pink (#F472B6) */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F472B6]/10 border border-[#F472B6]/20 mb-5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F472B6] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F472B6]"></span>
-              </span>
-              <span className="text-[#F472B6] text-xs font-semibold tracking-widest uppercase">Your Health Journey</span>
-            </div>
-
-            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-              {greeting}, {session?.user?.name} 👋
-            </h1>
-            <p className="text-slate-300 text-base max-w-lg leading-relaxed font-light">
-              {pregnancy?.progress
-                ? <>You&apos;re in <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#F472B6] font-semibold">week {pregnancy.progress.weeks}</span> ({pregnancy.progress.trimesterLabel}) of your pregnancy.</>
-                : pregnancy
-                ? <>You&apos;re in <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#F472B6] font-semibold">week {pregnancy.currentWeek || '?'}</span> of your pregnancy.</>
-                : <>Track your maternal health journey with{' '}<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#F472B6] font-semibold">CareNest</span>.</>}
-            </p>
-          </div>
-
-          {/* Right side info chips */}
-          <div className="hidden lg:flex flex-col items-end gap-3">
+      <DashboardHero
+        title={`${greeting}, ${session?.user?.name} 👋`}
+        pillLabel="Your Health Journey"
+        pillColorClass="text-[#F472B6]"
+        subtitle={(
+          <>
+            {pregnancy?.progress
+              ? <>You&apos;re in <span className="font-semibold text-white">week {pregnancy.progress.weeks}</span> ({pregnancy.progress.trimesterLabel}) of your pregnancy.</>
+              : pregnancy
+              ? <>You&apos;re in <span className="font-semibold text-white">week {pregnancy.currentWeek || '?'}</span> of your pregnancy.</>
+              : <>Track your maternal health journey with <span className="font-semibold text-white">CareNest</span>.</>}
+          </>
+        )}
+        rightInfo={(
+          <>
             <div className="text-right">
               <p className="text-xs text-slate-400 mb-0.5">Today</p>
-              <p className="text-base font-semibold text-white">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-              </p>
+              <p className="text-base font-semibold text-white">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-[#D1FAE5]/10 border border-[#10B981]/20 rounded-full">
@@ -149,9 +127,9 @@ export default function MotherDashboard() {
                 <span className="text-xs text-[#F472B6] font-medium">Mother</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </>
+        )}
+      />
 
       {/* ── Stats Grid ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

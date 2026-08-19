@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -19,10 +20,12 @@ function createPrismaClient() {
   // an adapter or accelerateUrl to be provided. Use the Postgres adapter factory
   // with the project's DATABASE_URL so the PrismaClient can operate without
   // requiring remote acceleration.
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
+  // Use the connection-string-based adapter to avoid needing a local
+  // `pg` Pool in environments where `pg` may not be available at runtime.
+  const adapter = new PrismaPg(process.env.DATABASE_URL ?? '');
 
   return new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 }

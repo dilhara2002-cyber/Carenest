@@ -82,6 +82,10 @@ export default function PregnanciesPage() {
     try {
       const params = new URLSearchParams();
       if (statusFilter) params.append('status', statusFilter);
+      // If the current user is a mother, explicitly request their pregnancies
+      if (isMother && session?.user?.motherId) {
+        params.append('motherId', session.user.motherId as string);
+      }
 
       const res = await fetch(`/api/pregnancies?${params.toString()}`);
       const data = await res.json();
@@ -397,7 +401,7 @@ export default function PregnanciesPage() {
                         </>
                       )}
                       {isMother && (
-                        <h3 className="font-semibold text-lg">My Pregnancy</h3>
+                        <h3 className="font-semibold text-lg text-gray-900">My Pregnancy</h3>
                       )}
                     </div>
                   </div>

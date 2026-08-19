@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Search, Calendar, MessageSquare, Syringe, Info, AlertTriangle, Check, ChevronRight, X } from 'lucide-react';
+import { Bell, Search, Calendar, MessageSquare, Syringe, Info, AlertTriangle, ChevronRight } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import { Modal } from '@/components/ui';
 
@@ -168,8 +168,10 @@ export function Header() {
 
   useEffect(() => {
     if (session) {
-      fetchUnreadCount();
-      fetchNotifications();
+      (async () => {
+        await fetchUnreadCount();
+        await fetchNotifications();
+      })();
       // Poll every 30 seconds
       const interval = setInterval(() => {
         fetchUnreadCount();
@@ -434,13 +436,8 @@ export function Header() {
             {/* Action Buttons */}
             <div className="flex gap-3 border-t pt-4">
               <button
-
                 onClick={handleCloseProfile}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-=======
-                onClick={() => setIsProfileOpen(false)}
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-
               >
                 Close
               </button>

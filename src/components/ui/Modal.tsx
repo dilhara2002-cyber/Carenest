@@ -21,15 +21,15 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/40" />
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 overflow-auto" onClick={onClose}>
+      {/* Backdrop: stronger, opaque overlay to prevent underlying text bleed-through */}
+      <div className="fixed inset-0 bg-black/80" />
       
       {/* Modal Container */}
-      <div className="flex min-h-full items-center justify-center w-full">
+      <div className="flex w-full items-start sm:items-center justify-center">
         {/* Modal */}
         <div
-          className={cn('relative bg-white rounded-lg shadow-xl w-full', sizes[size])}
+          className={cn('relative bg-white rounded-lg shadow-xl w-full modal-content', sizes[size]) + ' max-h-[calc(100vh-4rem)] overflow-y-auto'}
           onClick={(event) => event.stopPropagation()}
         >
           {title && (

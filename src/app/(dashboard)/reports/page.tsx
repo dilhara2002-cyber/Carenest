@@ -468,12 +468,12 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left: Upload Form */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Upload Document</h3>
+              <h3 className="text-lg font-medium text-gray-900">Upload Document</h3>
               <form onSubmit={handleUploadDocument} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-700">Select Patient</label>
                   <select
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={selectedMotherId}
                     onChange={(e) => setSelectedMotherId(e.target.value)}
                   >
@@ -487,7 +487,7 @@ export default function ReportsPage() {
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-700">Document Type</label>
                   <select
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={uploadType}
                     onChange={(e) => setUploadType(e.target.value)}
                     required
@@ -506,7 +506,7 @@ export default function ReportsPage() {
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg p-1"
+                    className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg p-1"
                     required
                   />
                 </div>
@@ -523,7 +523,7 @@ export default function ReportsPage() {
 
             {/* Right: Existing Documents */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Patient&apos;s Documents</h3>
+              <h3 className="text-lg font-medium text-gray-900">Patient&apos;s Documents</h3>
               {!selectedMotherId ? (
                 <div className="p-8 text-center border-2 border-dashed rounded-lg text-gray-500">
                   Select a patient to view their documents.
