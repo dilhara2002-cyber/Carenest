@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Download, AlertCircle, FileText, Filter, Calendar, Layers, Clock, Upload, Trash2 } from 'lucide-react';
+import { FileText, Calendar, Filter, Download, Trash2, ShieldCheck, AlertCircle, RefreshCw, EyeOff, Upload, Clock } from 'lucide-react';
 
 interface DocumentType {
   id: string;
@@ -282,6 +282,7 @@ export default function MyReportsPage() {
   // Derived dashboard metrics based on filtered results
   const totalTypesCount = new Set(filteredDocuments.map(d => d.documentType.id)).size;
   const rawMostRecent = filteredDocuments[0]?.uploadedAt;
+  const recentDocuments = allDocuments.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -310,9 +311,43 @@ export default function MyReportsPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-          {/* 👈 LEFT COLUMN: SEQUENTIAL STEP FILTER SELECTION INTERFACE */}
+        
+          {/* 👈 LEFT COLUMN: RECENT DOCS & FILTER INTERFACE */}
           <div className="lg:col-span-1 space-y-6">
+            
+            {/* RECENT DOCUMENTS CARD */}
+            {recentDocuments.length > 0 && (
+              <div className="bg-white rounded-xl border border-teal-100 shadow-sm p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-3 border-b border-teal-50">
+                  <Clock className="h-4 w-4 text-teal-600" />
+                  <h2 className="font-semibold text-gray-900">Recent Documents</h2>
+                </div>
+                <div className="space-y-3">
+                  {recentDocuments.map(doc => (
+                    <div key={`recent-${doc.id}`} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg group transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileText className="h-4 w-4 text-gray-400 group-hover:text-teal-600 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-900 truncate" title={doc.fileName}>
+                            {doc.fileName.replace(/\.[^/.]+$/, '')}
+                          </p>
+                          <p className="text-[10px] text-gray-500">
+                            {formatDate(doc.uploadedAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleIndividualDownload(doc.fileUrl)}
+                        className="text-teal-600 hover:text-teal-800 p-1 bg-teal-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="View Document"
+                      >
+                        <Download className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             {/* UPLOAD DOCUMENT CARD */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">

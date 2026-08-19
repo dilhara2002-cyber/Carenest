@@ -47,6 +47,13 @@ dev.out.log
 dev.err.log
 *.bak
 
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
 # User-uploaded profile images
 /public/uploads/profiles/*
 !/public/uploads/profiles/.gitkeep
