@@ -273,8 +273,8 @@ export default function PregnanciesPage() {
         pillLabel="Pregnancy"
         actions={(
           <>
-            <Button variant="outline" className="!bg-white/15 hover:!bg-white/25 !text-white font-bold rounded-xl !border !border-white/40 backdrop-blur-md shadow-sm transition-all" onClick={fetchPregnancies}>
-              <RefreshCw className="h-4 w-4 mr-2 text-white" />
+            <Button variant="outline" className="!bg-white hover:!bg-gray-100 !text-gray-900 font-bold rounded-xl !border !border-gray-200 shadow-sm transition-all cursor-pointer" onClick={fetchPregnancies}>
+              <RefreshCw className="h-4 w-4 mr-2 text-gray-700" />
               Refresh
             </Button>
             {canManage && (
