@@ -409,7 +409,7 @@ export default function AiCarePage() {
                     <div key={record.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                          onClick={() => setSuggestions(record.suggestions)}>
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="default" className="text-xs">
                           Week {record.pregnancyWeek || 'N/A'}
                         </Badge>
                         <span className="text-xs text-gray-500">

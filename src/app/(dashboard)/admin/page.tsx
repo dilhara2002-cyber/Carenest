@@ -14,6 +14,7 @@ interface RecentRegistration {
   id: string;
   name?: string;
   email?: string;
+  createdAt?: string | Date;
 }
 
 interface DashboardData {
