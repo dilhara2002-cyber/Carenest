@@ -47,21 +47,6 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Heart className="h-10 w-10 text-teal-600" />
-            <span className="text-2xl font-bold text-gray-900">CareNest</span>
-          </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-          <p className="mt-1 text-gray-600 text-sm">Sign in to your account</p>
-        </div>
-
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && !isActivationError && (
-              <div className="p-3 rounded-lg text-sm bg-rose-50 border border-rose-200 text-rose-700 font-medium">
     <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Ambient lights matching landing page */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#FBCFE8] to-[#E0E7FF] blur-[150px] opacity-40 mix-blend-multiply pointer-events-none" />
@@ -82,7 +67,6 @@ export default function LoginPage() {
 
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-[#E5E7EB]">
           <form onSubmit={handleSubmit} className="space-y-6">
-
             {error && !isActivationError && (
               <div className="p-3 rounded-lg text-sm bg-red-50 text-red-600 border border-red-100">
                 {error}
@@ -91,7 +75,6 @@ export default function LoginPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               <label className="block text-sm font-medium text-[#111827] mb-1">
                 Email Address
               </label>
@@ -103,7 +86,6 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-[#111827] bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-shadow"
                   placeholder="Enter your email"
                   required
@@ -113,7 +95,6 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               <label className="block text-sm font-medium text-[#111827] mb-1">
                 Password
               </label>
@@ -125,7 +106,6 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg text-[#111827] bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-shadow"
                   placeholder="Enter your password"
                   required
@@ -145,12 +125,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center cursor-pointer">
-                <input type="checkbox" className="h-4 w-4 text-teal-600 rounded border-gray-300" />
-                <span className="ml-2 text-gray-600">Remember me</span>
-              </label>
-              <Link href="/forgot-password" className="text-teal-600 hover:text-teal-700 font-medium">
             {/* Remember Me / Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center cursor-pointer">
@@ -169,7 +143,6 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-lg font-semibold" isLoading={isLoading}>
             {/* Sign In */}
             <Button
               type="submit"
@@ -180,10 +153,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="text-center pt-2">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-teal-600 hover:text-teal-700 font-semibold">
           {/* Register */}
           <div className="mt-6 text-center">
             <p className="text-sm text-[#6B7280]">
@@ -208,7 +177,6 @@ export default function LoginPage() {
         size="md"
       >
         <div className="space-y-4">
-
           <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
 
@@ -251,7 +219,6 @@ export default function LoginPage() {
               Got it
             </Button>
           </div>
-
         </div>
       </Modal>
     </div>
