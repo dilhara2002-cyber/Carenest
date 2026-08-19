@@ -201,7 +201,7 @@ select .text-transparent {
 /* Fix gradient text rendering by forcing WebKit background clip */
 .bg-clip-text {
   -webkit-background-clip: text !important;
-  background-clip: text !important;
+  background-clip: text !important;}
 /* Ensure modal content text is visible and not affected by accidental transparency or parent opacity */
 .modal-content,
 .modal-content * {
