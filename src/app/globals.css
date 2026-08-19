@@ -198,4 +198,15 @@ select .text-transparent {
   opacity: 1 !important;
 }
 
+/* Ensure modal content text is visible and not affected by accidental transparency or parent opacity */
+.modal-content,
+.modal-content * {
+  opacity: 1 !important;
+}
+
+/* Ensure modal text uses a readable dark color on the white modal background */
+.modal-content {
+  color: #111827 !important;
+}
+
 

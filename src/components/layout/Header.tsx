@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Bell, Calendar, MessageSquare, Syringe, Info, AlertTriangle, Check, ChevronRight, X } from 'lucide-react';
+
+import { Bell, Search, Calendar, MessageSquare, Syringe, Info, AlertTriangle, Check, ChevronRight } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import { Modal } from '@/components/ui';
 
@@ -168,8 +169,10 @@ export function Header() {
 
   useEffect(() => {
     if (session) {
-      fetchUnreadCount();
-      fetchNotifications();
+      (async () => {
+        await fetchUnreadCount();
+        await fetchNotifications();
+      })();
       // Poll every 30 seconds
       const interval = setInterval(() => {
         fetchUnreadCount();
