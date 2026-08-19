@@ -91,7 +91,6 @@ export default function LoginPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               <label className="block text-sm font-medium text-[#111827] mb-1">
                 Email Address
               </label>
@@ -103,7 +102,6 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-[#111827] bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-shadow"
                   placeholder="Enter your email"
                   required
@@ -113,7 +111,6 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               <label className="block text-sm font-medium text-[#111827] mb-1">
                 Password
               </label>
@@ -125,7 +122,6 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg text-[#111827] bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-shadow"
                   placeholder="Enter your password"
                   required
@@ -145,12 +141,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center cursor-pointer">
-                <input type="checkbox" className="h-4 w-4 text-teal-600 rounded border-gray-300" />
-                <span className="ml-2 text-gray-600">Remember me</span>
-              </label>
-              <Link href="/forgot-password" className="text-teal-600 hover:text-teal-700 font-medium">
             {/* Remember Me / Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center cursor-pointer">
@@ -169,7 +159,6 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-lg font-semibold" isLoading={isLoading}>
             {/* Sign In */}
             <Button
               type="submit"
@@ -180,15 +169,10 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="text-center pt-2">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-teal-600 hover:text-teal-700 font-semibold">
           {/* Register */}
           <div className="mt-6 text-center">
             <p className="text-sm text-[#6B7280]">
               Don&apos;t have an account?{' '}
-
               <Link
                 href="/register"
                 className="text-[#2563EB] hover:text-[#1E40AF] font-medium"
