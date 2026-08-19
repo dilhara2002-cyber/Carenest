@@ -482,8 +482,8 @@ export default function MothersPage() {
                     <Badge variant="danger">Inactive</Badge>
                   )}
                 </TableCell>
-                <TableCell>
-                  <div className="flex gap-1 flex-wrap">
+                <TableCell className="min-w-[130px]">
+                  <div className="grid grid-cols-3 gap-1.5 w-max">
                     <Button
                       size="sm"
                       variant="outline"
@@ -526,9 +526,9 @@ export default function MothersPage() {
                           disabled={actionLoading}
                         >
                           {mother.user?.isActive !== false ? (
-                            <ToggleRight className="h-4 w-4" />
+                            <ToggleRight className="h-4 w-4 text-emerald-600" />
                           ) : (
-                            <ToggleLeft className="h-4 w-4" />
+                            <ToggleLeft className="h-4 w-4 text-amber-600" />
                           )}
                         </Button>
                         <Button

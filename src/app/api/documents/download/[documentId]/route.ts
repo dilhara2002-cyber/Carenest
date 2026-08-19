@@ -54,7 +54,6 @@ export async function GET(
     // 4. Stream file back to the browser
     // Content-Disposition "inline" allows opening natively, "attachment" forces download
     const disposition = req.nextUrl.searchParams.get('download') === 'true' ? 'attachment' : 'inline';
-
     return new NextResponse(Buffer.from(document.fileData) as unknown as BodyInit, {
       status: 200,
       headers: {
