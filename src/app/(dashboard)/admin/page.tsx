@@ -14,6 +14,7 @@ interface RecentRegistration {
   id: string;
   name?: string;
   email?: string;
+  createdAt?: string; // Add createdAt property
 }
 
 interface DashboardData {
@@ -226,7 +227,7 @@ export default function AdminDashboard() {
                       <span className="inline-block text-[10px] font-semibold text-[#10B981] bg-[#D1FAE5] px-2 py-0.5 rounded-full">
                         Mother
                       </span>
-                      <p className="text-[10px] text-[#6B7280]">{formatDate(user.createdAt)}</p>
+                      <p className="text-[10px] text-[#6B7280]">{user.createdAt ? formatDate(user.createdAt) : 'Recently'}</p>
                     </div>
                   </div>
                 );
