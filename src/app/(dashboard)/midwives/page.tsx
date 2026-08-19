@@ -41,6 +41,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { formatDate, cn } from '@/lib/utils';
+import DashboardHero from '@/components/layout/DashboardHero';
 
 interface Midwife {
   id: string;
@@ -372,28 +373,47 @@ export default function MidwivesPage() {
   const totalAssignedMothers = midwives.reduce((sum, m) => sum + m._count.assignedMothers, 0);
 
   return (
-    <div className="space-y-6 relative overflow-visible">
-      {/* Background decoration orbs matching Landing Page */}
-      <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[300px] rounded-full bg-[#FBCFE8]/25 blur-[100px] opacity-40 mix-blend-multiply pointer-events-none -z-10" />
-      <div className="absolute top-[35%] right-[-5%] w-[35%] h-[300px] rounded-full bg-[#E0E7FF]/40 blur-[100px] opacity-50 mix-blend-multiply pointer-events-none -z-10" />
+    <div className="relative min-h-screen">
+      {/* Maternal Care Wallpaper Background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/admin-wallpaper.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          opacity: 0.12,
+        }}
+      />
+      {/* Soft gradient overlay for better contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/40 via-white/60 to-pink-50/40" />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">Midwife Management</h1>
-          <p className="text-gray-500 font-light mt-1">Register and manage midwives in the system</p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <Button variant="outline" className="font-bold rounded-xl border-gray-300 text-black hover:bg-gray-100 transition-colors" onClick={fetchMidwives}>
-            <RefreshCw className="h-4 w-4 mr-2 text-black" />
-            Refresh
-          </Button>
-          <Button className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-lg transition-all" onClick={() => setShowRegisterModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Register Midwife
-          </Button>
-        </div>
-      </div>
+      <div className="space-y-6 relative z-10">
+        <DashboardHero
+          title="Midwife Management"
+          subtitle="Register and manage midwives in the care system"
+          pillLabel="Midwives"
+          actions={(
+            <>
+              <Button
+                variant="outline"
+                className="font-bold rounded-xl border-white/20 text-white hover:bg-white/10 transition-colors"
+                onClick={fetchMidwives}
+              >
+                <RefreshCw className="h-4 w-4 mr-2 text-white" />
+                Refresh
+              </Button>
+              <Button
+                className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-lg transition-all"
+                onClick={() => setShowRegisterModal(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Register Midwife
+              </Button>
+            </>
+          )}
+        />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -1147,6 +1167,7 @@ export default function MidwivesPage() {
           </div>
         </div>
       </Modal>
+      </div>
     </div>
   );
 }

@@ -37,7 +37,7 @@ export default function DashboardHero({ title, subtitle, pillLabel, pillColorCla
           <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">{title}</h1>
 
           {subtitle && (
-            <p className="text-[#6B7280] text-base max-w-lg leading-relaxed font-light">
+            <p className="text-slate-300 text-base max-w-lg leading-relaxed font-light">
               {subtitle}
             </p>
           )}
