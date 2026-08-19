@@ -1,8 +1,5 @@
-// CareNest - Web-Based Midwifery and Maternal Care Management System
-// Database Schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -11,20 +8,357 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User roles enum
+model User {
+  id                      String         @id @default(cuid())
+  name                    String
+  email                   String         @unique
+  password                String
+  role                    Role           @default(MOTHER)
+  phone                   String?
+  address                 String?
+  profileImage            String?
+  language                String         @default("en")
+  isActive                Boolean        @default(true)
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  notifyChatMessages      Boolean        @default(true)
+  notifySystemUpdates     Boolean        @default(true)
+  notifyVaccinationAlerts Boolean        @default(true)
+  notifyVisitReminders    Boolean        @default(true)
+  auditLogs               AuditLog[]
+  receivedMessages        ChatMessage[]  @relation("ReceivedMessages")
+  sentMessages            ChatMessage[]  @relation("SentMessages")
+  midwife                 Midwife?
+  mother                  Mother?
+  notifications           Notification[]
+
+  @@map("users")
+}
+
+model Mother {
+  id                     String                  @id @default(cuid())
+  userId                 String                  @unique
+  dateOfBirth            DateTime?
+  bloodGroup             String?
+  emergencyContact       String?
+  emergencyName          String?
+  medicalHistory         String?
+  allergies              String?
+  assignedMidwifeId      String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  latitude               Decimal?                @db.Decimal(10, 7)
+  locationUpdatedAt      DateTime?
+  longitude              Decimal?                @db.Decimal(10, 7)
+  mohRegNumber           String                  @default("")
+  mohRegistrationNumber  String?
+  nicNumber              String                  @default("")
+  needsSpecialAttention  Boolean                 @default(false)
+  height                 Decimal?                @db.Decimal(5, 2)
+  aiCareRecords          AICareRecord[]
+  children               Child[]
+  documents              Document[]
+  motherGrowthRecords    MotherGrowthRecord[]
+  assignedMidwife        Midwife?                @relation(fields: [assignedMidwifeId], references: [id])
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pregnancies            Pregnancy[]
+  thriposhaDistributions ThriposhaDistribution[]
+  vaccinations           Vaccination[]
+  visits                 Visit[]
+
+  @@map("mothers")
+}
+
+model Midwife {
+  id                     String                  @id @default(cuid())
+  userId                 String                  @unique
+  licenseNumber          String?
+  specialization         String?
+  experience             Int?
+  workArea               String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  motherGrowthRecords    MotherGrowthRecord[]
+  assignedMothers        Mother[]
+  thriposhaDistributions ThriposhaDistribution[]
+  visits                 Visit[]
+
+  @@map("midwives")
+}
+
+model Pregnancy {
+  id                   String    @id @default(cuid())
+  motherId             String
+  expectedDeliveryDate DateTime?
+  lastMenstrualPeriod  DateTime?
+  currentWeek          Int?
+  status               String    @default("ACTIVE")
+  medicalNotes         String?
+  highRisk             Boolean   @default(false)
+  highRiskReasons      String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  mother               Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("pregnancies")
+}
+
+model Child {
+  id                     String                  @id @default(cuid())
+  motherId               String
+  name                   String
+  gender                 Gender
+  birthDate              DateTime
+  birthWeight            Decimal?                @db.Decimal(5, 2)
+  birthHeight            Decimal?                @db.Decimal(5, 2)
+  birthTime              String?
+  birthPlace             String?
+  healthNotes            String?
+  image                  String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  gestationalAgeWeeks    Int?
+  isPreterm              Boolean                 @default(false)
+  childGrowthRecords     ChildGrowthRecord[]
+  mother                 Mother                  @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  growthRecords          GrowthRecord[]
+  thriposhaDistributions ThriposhaDistribution[]
+  vaccinations           Vaccination[]
+  visits                 Visit[]
+
+  @@map("children")
+}
+
+model GrowthRecord {
+  id                 String   @id @default(cuid())
+  childId            String
+  recordDate         DateTime @default(now())
+  weight             Decimal? @db.Decimal(5, 2)
+  height             Decimal? @db.Decimal(5, 2)
+  headCircumference  Decimal? @db.Decimal(5, 2)
+  bmi                Decimal? @db.Decimal(5, 2)
+  notes              String?
+  createdAt          DateTime @default(now())
+  ageMonths          Int?
+  bmiStatus          String?
+  correctedAgeMonths Int?
+  heightStatus       String?
+  weightStatus       String?
+  zScoreBmi          Decimal? @db.Decimal(5, 2)
+  zScoreHeight       Decimal? @db.Decimal(5, 2)
+  zScoreWeight       Decimal? @db.Decimal(5, 2)
+  child              Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("growth_records")
+}
+
+model ChildGrowthRecord {
+  id                  String   @id @default(cuid())
+  childId             String
+  recordDate          DateTime @default(now())
+  weightKg            Decimal  @db.Decimal(5, 2)
+  lengthCm            Decimal  @db.Decimal(5, 2)
+  headCircumferenceCm Decimal  @db.Decimal(5, 2)
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  child               Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("child_growth_records")
+}
+
+model Visit {
+  id                   String      @id @default(cuid())
+  motherId             String
+  midwifeId            String
+  visitType            VisitType
+  visitDate            DateTime
+  notes                String?
+  status               VisitStatus @default(SCHEDULED)
+  bloodPressure        String?
+  weight               Decimal?    @db.Decimal(5, 2)
+  temperature          Decimal?    @db.Decimal(4, 1)
+  fetalHeartRate       Int?
+  symptoms             String?
+  recommendations      String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  postnatalVisitNumber Int?
+  postnatalWindowStart DateTime?
+  postnatalWindowEnd   DateTime?
+  isPostnatalMandatory Boolean     @default(false)
+  isMohVisitRequired   Boolean     @default(false)
+  childId              String?
+  child                Child?      @relation(fields: [childId], references: [id])
+  midwife              Midwife     @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+  mother               Mother      @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("visits")
+}
+
+model Vaccination {
+  id               String            @id @default(cuid())
+  motherId         String?
+  childId          String?
+  vaccineName      String
+  scheduledDate    DateTime
+  administeredDate DateTime?
+  status           VaccinationStatus @default(PENDING)
+  batchNumber      String?
+  administeredBy   String?
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  child            Child?            @relation(fields: [childId], references: [id], onDelete: Cascade)
+  mother           Mother?           @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("vaccinations")
+}
+
+model AICareRecord {
+  id            String   @id @default(cuid())
+  motherId      String
+  pregnancyWeek Int?
+  careType      String
+  query         String?
+  suggestions   String
+  generatedAt   DateTime @default(now())
+  mother        Mother   @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("ai_care_records")
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  status    NotificationStatus @default(UNREAD)
+  link      String?
+  createdAt DateTime           @default(now())
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  message    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  ipAddress String?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+model DocumentType {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  documents Document[]
+
+  @@map("document_types")
+}
+
+model Document {
+  id             String       @id @default(cuid())
+  fileUrl        String
+  fileName       String
+  documentTypeId String
+  motherId       String
+  uploadedAt     DateTime     @default(now())
+  fileData       Bytes?
+  documentType   DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
+  mother         Mother       @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model ThriposhaDistribution {
+  id               String                 @id @default(cuid())
+  motherId         String?
+  childId          String?
+  midwifeId        String
+  recipientType    ThriposhaRecipientType
+  packetType       ThriposhaPacketType    @default(YELLOW)
+  quantity         Decimal                @db.Decimal(5, 2)
+  distributionDate DateTime               @default(now())
+  month            Int
+  year             Int
+  batchNumber      String?
+  notes            String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  child            Child?                 @relation(fields: [childId], references: [id], onDelete: Cascade)
+  midwife          Midwife                @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
+  mother           Mother?                @relation(fields: [motherId], references: [id], onDelete: Cascade)
+
+  @@map("thriposha_distributions")
+}
+
+model ThriposhaStock {
+  id                String              @id @default(cuid())
+  receivedDate      DateTime            @default(now())
+  quantity          Decimal             @db.Decimal(8, 2)
+  remainingQuantity Decimal             @default(0) @db.Decimal(8, 2)
+  packetType        ThriposhaPacketType @default(YELLOW)
+  batchNumber       String?
+  supplier          String?
+  expiryDate        DateTime?
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@map("thriposha_stock")
+}
+
+model MotherGrowthRecord {
+  id           String   @id @default(cuid())
+  motherId     String
+  recordedById String
+  recordDate   DateTime @default(now())
+  weightKg     Decimal  @db.Decimal(5, 2)
+  sfhCm        Decimal? @db.Decimal(5, 2)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  mother       Mother   @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  recordedBy   Midwife  @relation(fields: [recordedById], references: [id])
+
+  @@map("mother_growth_records")
+}
+
 enum Role {
   MOTHER
   MIDWIFE
   ADMIN
 }
 
-// Visit type enum
 enum VisitType {
   ANTENATAL
   POSTNATAL
 }
 
-// Status enums
 enum VisitStatus {
   SCHEDULED
   COMPLETED
@@ -59,408 +393,3 @@ enum ThriposhaPacketType {
   ORANGE
   YELLOW
 }
-
-// User Table - Base user authentication
-model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  password      String
-  role          Role      @default(MOTHER)
-  phone         String?
-  address       String?
-  profileImage  String?
-  language      String    @default("en") // en, si, ta
-  isActive      Boolean   @default(true)
-  notifyVisitReminders Boolean @default(true)
-  notifyVaccinationAlerts Boolean @default(true)
-  notifyChatMessages Boolean @default(true)
-  notifySystemUpdates Boolean @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  mother        Mother?
-  midwife       Midwife?
-  notifications Notification[]
-  auditLogs     AuditLog[]
-  sentMessages  ChatMessage[]  @relation("SentMessages")
-  receivedMessages ChatMessage[] @relation("ReceivedMessages")
-
-  @@map("users")
-}
-
-// Mother Table - Extended profile for mothers
-model Mother {
-  id                    String    @id @default(cuid())
-  userId                String    @unique
-  dateOfBirth           DateTime?
-  bloodGroup            String?
-  emergencyContact      String?
-  emergencyName         String?
-  medicalHistory        String?
-  allergies             String?
-  mohRegistrationNumber String?   // H 502 registry serial number (e.g., 2026/MAH/102)
-  mohRegNumber          String    @default("")
-  nicNumber             String    @default("")
-  height                Decimal?  @db.Decimal(5, 2) // in cm
-  assignedMidwifeId     String?
-  needsSpecialAttention Boolean   @default(false) // Midwife discretion: requires more frequent visits
-  latitude              Decimal?  @db.Decimal(10, 7)
-  longitude             Decimal?  @db.Decimal(10, 7)
-  locationUpdatedAt     DateTime?
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  // Relations
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedMidwife       Midwife?  @relation(fields: [assignedMidwifeId], references: [id])
-  pregnancies           Pregnancy[]
-  children              Child[]
-  visits                Visit[]
-  vaccinations          Vaccination[]
-  aiCareRecords         AICareRecord[]
-  documents             Document[]
-  thriposhaDistributions ThriposhaDistribution[]
-  motherGrowthRecords   MotherGrowthRecord[]
-
-  @@map("mothers")
-}
-
-// Midwife Table - Extended profile for midwives
-model Midwife {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  licenseNumber   String?
-  specialization  String?
-  experience      Int?      // Years of experience
-  workArea        String?   // Geographic area
-
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedMothers Mother[]
-  visits          Visit[]
-  thriposhaDistributions ThriposhaDistribution[]
-  motherGrowthRecords    MotherGrowthRecord[]
-
-  @@map("midwives")
-}
-
-// Pregnancy Table
-model Pregnancy {
-  id                   String    @id @default(cuid())
-  motherId             String
-  expectedDeliveryDate DateTime?
-  lastMenstrualPeriod  DateTime?
-  currentWeek          Int?
-  status               String    @default("ACTIVE") // ACTIVE, DELIVERED, TERMINATED
-  medicalNotes         String?
-  highRisk             Boolean   @default(false)
-  highRiskReasons      String?
-
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
-  // Relations
-  mother               Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
-
-  @@map("pregnancies")
-}
-
-// Child Table
-model Child {
-  id            String    @id @default(cuid())
-  motherId      String
-  name          String
-  gender        Gender
-  birthDate     DateTime
-  birthWeight   Decimal?  @db.Decimal(5, 2) // in kg
-  birthHeight   Decimal?  @db.Decimal(5, 2) // in cm
-  birthTime     String?
-  birthPlace    String?
-  healthNotes   String?
-  image         String?
-  isPreterm           Boolean   @default(false)
-  gestationalAgeWeeks Int?
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  mother        Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
-  growthRecords GrowthRecord[]
-  childGrowthRecords ChildGrowthRecord[]
-  vaccinations  Vaccination[]
-  visits        Visit[]   // Postnatal visits linked to this child
-  thriposhaDistributions ThriposhaDistribution[]
-
-  @@map("children")
-}
-
-// Growth Record for Children
-model GrowthRecord {
-  id          String    @id @default(cuid())
-  childId     String
-  recordDate  DateTime  @default(now())
-  weight      Decimal?  @db.Decimal(5, 2) // in kg
-  height      Decimal?  @db.Decimal(5, 2) // in cm
-  headCircumference Decimal? @db.Decimal(5, 2) // in cm
-  bmi         Decimal?  @db.Decimal(5, 2)
-  notes       String?
-  ageMonths           Int?
-  correctedAgeMonths  Int?
-  zScoreWeight        Decimal?  @db.Decimal(5, 2)
-  zScoreHeight        Decimal?  @db.Decimal(5, 2)
-  zScoreBmi           Decimal?  @db.Decimal(5, 2)
-  weightStatus        String?
-  heightStatus        String?
-  bmiStatus           String?
-
-  createdAt   DateTime  @default(now())
-
-  // Relations
-  child       Child     @relation(fields: [childId], references: [id], onDelete: Cascade)
-
-  @@map("growth_records")
-}
-
-// Child Growth Record - tracks ongoing growth measurements over time (weight, length/height, head circumference)
-model ChildGrowthRecord {
-  id                  String   @id @default(cuid())
-  childId             String
-  recordDate          DateTime @default(now())
-  weightKg            Decimal  @db.Decimal(5, 2) // weight in kg
-  lengthCm            Decimal  @db.Decimal(5, 2) // length/height in cm
-  headCircumferenceCm Decimal  @db.Decimal(5, 2) // head circumference in cm
-  notes               String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // Relations
-  child               Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
-
-  @@map("child_growth_records")
-}
-
-// Visit Table
-model Visit {
-  id          String      @id @default(cuid())
-  motherId    String
-  midwifeId   String
-  visitType   VisitType
-  visitDate   DateTime
-  notes       String?
-  status      VisitStatus @default(SCHEDULED)
-  bloodPressure String?
-  weight      Decimal?    @db.Decimal(5, 2)
-  temperature Decimal?    @db.Decimal(4, 1)
-  fetalHeartRate Int?
-  symptoms    String?
-  recommendations String?
-
-  // Postnatal visit scheduling fields
-  postnatalVisitNumber   Int?          // 1, 2, 3, or 4 for mandatory postnatal visits
-  postnatalWindowStart   DateTime?     // Earliest date for this postnatal visit
-  postnatalWindowEnd     DateTime?     // Latest date for this postnatal visit
-  isPostnatalMandatory   Boolean       @default(false)
-  isMohVisitRequired     Boolean       @default(false)  // True for 3rd postnatal visit
-  childId                String?       // Link postnatal visits to specific child
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relations
-  mother      Mother      @relation(fields: [motherId], references: [id], onDelete: Cascade)
-  midwife     Midwife     @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
-  child       Child?      @relation(fields: [childId], references: [id])
-
-  @@map("visits")
-}
-
-// Vaccination Table
-model Vaccination {
-  id               String            @id @default(cuid())
-  motherId         String?
-  childId          String?
-  vaccineName      String
-  scheduledDate    DateTime
-  administeredDate DateTime?
-  status           VaccinationStatus @default(PENDING)
-  batchNumber      String?
-  administeredBy   String?
-  notes            String?
-
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-
-  // Relations
-  mother           Mother?           @relation(fields: [motherId], references: [id], onDelete: Cascade)
-  child            Child?            @relation(fields: [childId], references: [id], onDelete: Cascade)
-
-  @@map("vaccinations")
-}
-
-// AI Assisted Care Records
-model AICareRecord {
-  id                  String    @id @default(cuid())
-  motherId            String
-  pregnancyWeek       Int?
-  careType            String    // FOOD, EXERCISE, FIRSTAID
-  query               String?
-  suggestions         String    @db.Text
-  generatedAt         DateTime  @default(now())
-
-  // Relations
-  mother              Mother    @relation(fields: [motherId], references: [id], onDelete: Cascade)
-
-  @@map("ai_care_records")
-}
-
-// Notification Table
-model Notification {
-  id          String             @id @default(cuid())
-  userId      String
-  title       String
-  message     String
-  type        String             // VISIT_REMINDER, VACCINATION_REMINDER, SYSTEM, CHAT
-  status      NotificationStatus @default(UNREAD)
-  link        String?
-  createdAt   DateTime           @default(now())
-
-  // Relations
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
-// Chat Messages
-model ChatMessage {
-  id          String    @id @default(cuid())
-  senderId    String
-  receiverId  String
-  message     String    @db.Text
-  isRead      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-
-  // Relations
-  sender      User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  @@map("chat_messages")
-}
-
-// Audit Log Table
-model AuditLog {
-  id          String    @id @default(cuid())
-  userId      String
-  action      String
-  entity      String
-  entityId    String?
-  details     String?
-  ipAddress   String?
-  timestamp   DateTime  @default(now())
-
-  // Relations
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("audit_logs")
-}
-
-// Document Type - Admin-defined document categories
-model DocumentType {
-  id        String     @id @default(cuid())
-  name      String     @unique // e.g., "H15 Card", "Blood Report", "Anomaly Scan"
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  // Relations
-  documents Document[]
-
-  @@map("document_types")
-}
-
-// Document - Health documents stored in Supabase
-model Document {
-  id             String       @id @default(cuid())
-  fileUrl        String       // Secure link or placeholder
-  fileName       String       // Original uploaded file name
-  documentTypeId String
-  motherId       String
-  uploadedAt     DateTime     @default(now())
-  fileData       Bytes?       // Binary PDF data stored directly in PostgreSQL
-
-  // Relations
-  documentType   DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
-  mother         Mother       @relation(fields: [motherId], references: [id], onDelete: Cascade)
-
-  @@map("documents")
-}
-
-// Thriposha Distribution Record
-model ThriposhaDistribution {
-  id               String                  @id @default(cuid())
-  motherId         String?
-  childId          String?
-  midwifeId        String
-  recipientType    ThriposhaRecipientType
-  packetType       ThriposhaPacketType     @default(YELLOW)
-  quantity         Decimal                 @db.Decimal(5, 2) // in kg
-  distributionDate DateTime                @default(now())
-  month            Int                     // 1-12, the calendar month this covers
-  year             Int                     // e.g. 2026
-  batchNumber      String?
-  notes            String?
-
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-
-  // Relations
-  mother           Mother?                 @relation(fields: [motherId], references: [id], onDelete: Cascade)
-  child            Child?                  @relation(fields: [childId], references: [id], onDelete: Cascade)
-  midwife          Midwife                 @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
-
-  @@map("thriposha_distributions")
-}
-
-// Thriposha Stock Record
-model ThriposhaStock {
-  id            String    @id @default(cuid())
-  receivedDate  DateTime  @default(now())
-  quantity          Decimal   @db.Decimal(8, 2) // in kg
-  remainingQuantity Decimal   @db.Decimal(8, 2) @default(0)
-  packetType        ThriposhaPacketType @default(YELLOW)
-  batchNumber   String?
-  supplier      String?
-  expiryDate    DateTime?
-  notes         String?
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@map("thriposha_stock")
-}
-
-// Mother Growth Record — tracks weight and SFH (belly growth) during pregnancy
-model MotherGrowthRecord {
-  id           String   @id @default(cuid())
-  motherId     String
-  recordedById String   // midwifeId of the staff member who recorded this
-  recordDate   DateTime @default(now())
-  weightKg     Decimal  @db.Decimal(5, 2) // e.g. 65.40 kg
-  sfhCm        Decimal? @db.Decimal(5, 2) // Symphysis-Fundal Height in cm (belly growth)
-  notes        String?
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  mother       Mother   @relation(fields: [motherId], references: [id], onDelete: Cascade)
-  recordedBy   Midwife  @relation(fields: [recordedById], references: [id])
-
-  @@map("mother_growth_records")
-}
-
