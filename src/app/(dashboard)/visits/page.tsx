@@ -22,6 +22,10 @@ interface Mother {
     email: string;
   };
   children: Child[];
+  pregnancies?: {
+    id: string;
+    status: string;
+  }[];
 }
 
 interface Visit {
@@ -108,6 +112,24 @@ export default function VisitsPage() {
       }
     }
   };
+
+  // Filter mothers based on active tab
+  const getFilteredMothersForTab = () => {
+    if (activeTab === 'PRENATAL') {
+      // Show only mothers with ACTIVE pregnancies
+      return mothers.filter(m => 
+        m.pregnancies?.some(p => p.status === 'ACTIVE')
+      );
+    } else {
+      // Show only mothers with DELIVERED pregnancies (who have given birth)
+      return mothers.filter(m => 
+        m.pregnancies?.some(p => p.status === 'DELIVERED')
+      );
+    }
+  };
+
+  // Get filtered mothers for the current tab
+  const filteredMothers = getFilteredMothersForTab();
 
   const fetchCurrentMotherDetails = async () => {
     if (session?.user?.role === 'MOTHER' && session.user.motherId) {
@@ -701,7 +723,7 @@ export default function VisitsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mothers.map((mother) => {
+                    {filteredMothers.map((mother) => {
                       const momAntenatalVisits = antenatalVisits.filter(v => v.motherId === mother.id);
                       
                       const lastMomVisit = momAntenatalVisits
@@ -873,7 +895,7 @@ export default function VisitsPage() {
                     label="Select Mother"
                     value={selectedMotherId}
                     onChange={(e) => setSelectedMotherId(e.target.value)}
-                    options={mothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
+                    options={filteredMothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
                     placeholder="Choose a mother..."
                   />
                 </div>
@@ -883,7 +905,7 @@ export default function VisitsPage() {
                       label="Select Child"
                       value={selectedChildId}
                       onChange={(e) => setSelectedChildId(e.target.value)}
-                      options={(mothers.find(m => m.id === selectedMotherId)?.children || []).map(c => ({
+                      options={(filteredMothers.find(m => m.id === selectedMotherId)?.children || []).map(c => ({
                         value: c.id,
                         label: `${c.name} (${formatDate(c.birthDate)})`,
                       }))}
@@ -996,7 +1018,7 @@ export default function VisitsPage() {
             label="Mother"
             value={formData.motherId}
             onChange={(e) => setFormData({ ...formData, motherId: e.target.value })}
-            options={mothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
+            options={filteredMothers.map(m => ({ value: m.id, label: m.user?.name || 'Unknown' }))}
             placeholder="Select mother"
             required
             disabled={session?.user?.role === 'MOTHER'}
@@ -1020,7 +1042,7 @@ export default function VisitsPage() {
                 options={(
                   (session?.user?.role === 'MOTHER'
                     ? currentMotherDetails?.children
-                    : mothers.find(m => m.id === formData.motherId)?.children) || []
+                    : filteredMothers.find(m => m.id === formData.motherId)?.children) || []
                 ).map(c => ({ value: c.id, label: c.name }))}
                 placeholder="Select child"
                 required
@@ -1060,7 +1082,7 @@ export default function VisitsPage() {
           {formData.visitType === 'ANTENATAL' && formData.motherId && (
             <div className="p-3 bg-gray-50 border rounded text-sm text-gray-700">
               {(() => {
-                const mom = mothers.find(m => m.id === formData.motherId);
+                const mom = filteredMothers.find(m => m.id === formData.motherId);
                 return (
                   <p>
                     Mother Care plan:{' '}

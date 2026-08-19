@@ -68,6 +68,16 @@ export async function GET(
       return NextResponse.json({ error: 'Mother not found' }, { status: 404 });
     }
 
+    // SECURITY: Midwives can only access their own assigned mothers
+    if (session.user.role === 'MIDWIFE' && session.user.midwifeId) {
+      if (mother.assignedMidwifeId !== session.user.midwifeId) {
+        return NextResponse.json(
+          { error: 'Forbidden: You can only access mothers assigned to you' },
+          { status: 403 }
+        );
+      }
+    }
+
     return NextResponse.json({ data: normalizeMotherCoordinates(mother) });
   } catch (error) {
     console.error('Get mother error:', error);
@@ -116,6 +126,16 @@ export async function PATCH(
 
     if (!currentMother) {
       return NextResponse.json({ error: 'Mother not found' }, { status: 404 });
+    }
+
+    // SECURITY: Midwives can only update their own assigned mothers
+    if (session.user.role === 'MIDWIFE' && session.user.midwifeId) {
+      if (currentMother.assignedMidwifeId !== session.user.midwifeId) {
+        return NextResponse.json(
+          { error: 'Forbidden: You can only update mothers assigned to you' },
+          { status: 403 }
+        );
+      }
     }
 
     const isAdmin = session.user.role === 'ADMIN';
