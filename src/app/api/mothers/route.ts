@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
     const search = searchParams.get('search') || '';
-    const assignedMidwifeSearch = searchParams.get('assignedMidwife') || '';
+    const carePlan = searchParams.get('carePlan') || '';
     const assignmentStatus = searchParams.get('assignmentStatus') || 'all';
     const accountStatus = searchParams.get('accountStatus') || 'all';
     const bloodGroup = searchParams.get('bloodGroup') || '';
@@ -44,12 +44,10 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    if (assignedMidwifeSearch) {
-      where.assignedMidwife = {
-        user: {
-          name: { contains: assignedMidwifeSearch, mode: 'insensitive' },
-        },
-      };
+    if (carePlan === 'normal') {
+      where.needsSpecialAttention = false;
+    } else if (carePlan === 'special') {
+      where.needsSpecialAttention = true;
     }
 
     if (assignmentStatus === 'assigned') {
@@ -182,7 +180,7 @@ export async function POST(req: NextRequest) {
     const isAdmin = session.user.role === 'ADMIN';
     const normalizedAssignedMidwifeId = isAdmin
       ? (assignedMidwifeId || null)
-      : (assignedMidwifeId || session.user.midwifeId || null);
+      : null; // Admin must assign a midwife later
 
     // Create user first
     const bcrypt = await import('bcryptjs');
@@ -196,7 +194,7 @@ export async function POST(req: NextRequest) {
         role: 'MOTHER',
         phone,
         address,
-        isActive: Boolean(normalizedAssignedMidwifeId),
+        isActive: isAdmin ? true : false, // Admin must approve later if created by midwife
       },
     });
 

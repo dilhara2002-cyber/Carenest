@@ -68,6 +68,16 @@ export async function GET(
       return NextResponse.json({ error: 'Mother not found' }, { status: 404 });
     }
 
+    // SECURITY: Midwives can only access their own assigned mothers
+    if (session.user.role === 'MIDWIFE' && session.user.midwifeId) {
+      if (mother.assignedMidwifeId !== session.user.midwifeId) {
+        return NextResponse.json(
+          { error: 'Forbidden: You can only access mothers assigned to you' },
+          { status: 403 }
+        );
+      }
+    }
+
     return NextResponse.json({ data: normalizeMotherCoordinates(mother) });
   } catch (error) {
     console.error('Get mother error:', error);
@@ -118,6 +128,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'Mother not found' }, { status: 404 });
     }
 
+    // SECURITY: Midwives can only update their own assigned mothers
+    if (session.user.role === 'MIDWIFE' && session.user.midwifeId) {
+      if (currentMother.assignedMidwifeId !== session.user.midwifeId) {
+        return NextResponse.json(
+          { error: 'Forbidden: You can only update mothers assigned to you' },
+          { status: 403 }
+        );
+      }
+    }
+
     const isAdmin = session.user.role === 'ADMIN';
 
     if (assignedMidwifeId !== undefined && !isAdmin) {
@@ -128,16 +148,15 @@ export async function PATCH(
     }
 
     // Update user data if provided
-    const nextIsActive =
-      assignedMidwifeId !== undefined
-        ? Boolean(assignedMidwifeId || null)
-        : isActive;
+    // Do NOT auto-activate when assigned. Require explicit activation (approval)
+    const nextIsActive = isActive !== undefined ? isActive : currentMother.user.isActive;
+    
     const effectiveAssignedMidwifeId =
       assignedMidwifeId !== undefined ? (assignedMidwifeId || null) : currentMother.assignedMidwifeId;
 
     if (nextIsActive === true && !effectiveAssignedMidwifeId) {
       return NextResponse.json(
-        { error: 'Mother accounts can only be activated after assigning a midwife' },
+        { error: 'Mother accounts can only be activated (approved) after assigning a midwife' },
         { status: 400 }
       );
     }

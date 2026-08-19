@@ -134,7 +134,7 @@ function LeafLink({
           'flex items-center gap-3 rounded-md text-sm font-medium transition-colors',
           indent ? 'px-3 py-2 ml-4' : 'px-3 py-2',
           isActive
-            ? 'bg-teal-50 text-teal-700'
+            ? 'bg-blue-50 text-blue-600 font-semibold'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
         )}
       >
@@ -172,7 +172,7 @@ function GroupNav({
         className={cn(
           'flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm font-medium transition-colors',
           active
-            ? 'bg-teal-50 text-teal-700'
+            ? 'bg-blue-50 text-blue-600 font-semibold'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
         )}
       >
@@ -228,7 +228,7 @@ export function Sidebar() {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/80 z-40"
           onClick={close}
         />
       )}
@@ -242,9 +242,14 @@ export function Sidebar() {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-200">
-            <Heart className="h-8 w-8 text-teal-600" />
-            <span className="text-xl font-bold text-gray-900">CareNest</span>
+          <div className="flex items-center gap-2.5 px-6 py-5 border-b border-gray-200 group cursor-pointer">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#F472B6] opacity-0 group-hover:opacity-100 transition duration-500 blur-xs" />
+              <Heart className="relative h-7 w-7 text-blue-600 transition-transform duration-300 group-hover:scale-110" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-gray-900 bg-clip-text">
+              CareNest
+            </span>
           </div>
 
           {/* Navigation */}

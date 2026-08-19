@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Select } from '@/components/ui';
-import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle, Upload } from 'lucide-react';
+
+import { FileText, Download, Calendar, Users, Syringe, BarChart3, Plus, Trash2, AlertCircle } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
+
 
 export default function ReportsPage() {
   const { data: session } = useSession();
@@ -27,7 +30,14 @@ export default function ReportsPage() {
   // Patient Documents States
   const [mothers, setMothers] = useState<{id: string, user: {name: string, email: string}}[]>([]);
   const [selectedMotherId, setSelectedMotherId] = useState('');
-  const [motherDocuments, setMotherDocuments] = useState<any[]>([]);
+  type DocumentItem = {
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    uploadedAt: string;
+    documentType: { name: string };
+  };
+  const [motherDocuments, setMotherDocuments] = useState<DocumentItem[]>([]);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<string>('');
   const [uploading, setUploading] = useState(false);
@@ -46,6 +56,7 @@ export default function ReportsPage() {
     }
   }, [session]);
 
+  // Fetch functions (hoisted so they can be referenced in effects)
   const fetchMothers = async () => {
     try {
       const res = await fetch('/api/mothers?pageSize=100');
@@ -53,7 +64,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setMothers(data.data || []);
       }
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load mothers');
     }
   };
@@ -65,7 +76,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setDocumentTypes(data.data || []);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to load document types');
     }
   };
@@ -84,6 +95,15 @@ export default function ReportsPage() {
       setLoadingRecent(false);
     }
   };
+  // Fetch initial data
+  useEffect(() => {
+    (async () => {
+      await fetchMothers();
+      if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MIDWIFE') {
+        await fetchDocumentTypes();
+      }
+    })();
+  }, [session]);
 
   const handleCreateDocumentType = async () => {
     if (!newDocTypeName.trim()) {
@@ -108,7 +128,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to create document type');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Error creating document type');
     } finally {
       setDocTypeLoading(false);
@@ -129,7 +149,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to delete document type');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Error deleting document type');
     }
   };
@@ -142,16 +162,18 @@ export default function ReportsPage() {
         const data = await res.json();
         setMotherDocuments(data.data || []);
       }
-    } catch (err) {
+    } catch (_err) {
       console.error('Failed to load documents');
     }
   };
 
   useEffect(() => {
     if (selectedMotherId) {
-      fetchMotherDocuments(selectedMotherId);
+      (async () => {
+        await fetchMotherDocuments(selectedMotherId);
+      })();
     } else {
-      setMotherDocuments([]);
+      Promise.resolve().then(() => setMotherDocuments([]));
     }
   }, [selectedMotherId]);
 
@@ -189,7 +211,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to upload document.');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred during upload.');
     } finally {
       setUploading(false);
@@ -215,7 +237,7 @@ export default function ReportsPage() {
         const data = await res.json();
         setError(data.error || 'Failed to delete document.');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred while deleting.');
     } finally {
       setDeletingId(null);
@@ -282,10 +304,11 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-gray-500">Generate and download system reports</p>
-      </div>
+      <DashboardHero
+        title="Reports"
+        subtitle="Generate and download system reports"
+        pillLabel="Reports"
+      />
 
       {/* Document Type Management - ADMIN Only */}
       {session?.user?.role === 'ADMIN' && (
@@ -433,15 +456,15 @@ export default function ReportsPage() {
                   <div
                     key={report.value}
                     onClick={() => setReportType(report.value)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${reportType === report.value
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors text-gray-900 ${reportType === report.value
                       ? 'border-teal-500 bg-teal-50'
                       : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <Icon className={`h-8 w-8 mb-2 ${reportType === report.value ? 'text-teal-600' : 'text-gray-400'
                       }`} />
-                    <h4 className="font-medium">{report.label}</h4>
-                    <p className="text-sm text-gray-500">
+                    <h4 className="font-medium text-gray-900">{report.label}</h4>
+                    <p className="text-sm text-gray-600">
                       {report.value === 'mothers' && 'List of registered mothers with details'}
                       {report.value === 'visits' && 'Visit history and statistics'}
                       {report.value === 'vaccinations' && 'Vaccination coverage report'}
@@ -517,6 +540,27 @@ export default function ReportsPage() {
               ))}
             </div>
           )}
+          <div className="space-y-3">
+            {[
+              { name: 'Monthly Summary - March 2026', date: '2026-03-31', type: 'Summary' },
+              { name: 'Vaccination Report - Q1 2026', date: '2026-03-15', type: 'Vaccinations' },
+              { name: 'Mother Registration Report', date: '2026-03-01', type: 'Mothers' },
+            ].map((report, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg text-gray-900">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium text-gray-900">{report.name}</p>
+                    <p className="text-sm text-gray-600">{report.type} • {report.date}</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="text-gray-900">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -529,12 +573,12 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left: Upload Form */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Upload Document</h3>
+              <h3 className="text-lg font-medium text-gray-900">Upload Document</h3>
               <form onSubmit={handleUploadDocument} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-700">Select Patient</label>
                   <select
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={selectedMotherId}
                     onChange={(e) => setSelectedMotherId(e.target.value)}
                   >
@@ -548,7 +592,7 @@ export default function ReportsPage() {
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-700">Document Type</label>
                   <select
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={uploadType}
                     onChange={(e) => setUploadType(e.target.value)}
                     required
@@ -567,7 +611,7 @@ export default function ReportsPage() {
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg p-1"
+                    className="w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg p-1"
                     required
                   />
                 </div>
@@ -584,7 +628,7 @@ export default function ReportsPage() {
 
             {/* Right: Existing Documents */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Patient&apos;s Documents</h3>
+              <h3 className="text-lg font-medium text-gray-900">Patient&apos;s Documents</h3>
               {!selectedMotherId ? (
                 <div className="p-8 text-center border-2 border-dashed rounded-lg text-gray-500">
                   Select a patient to view their documents.

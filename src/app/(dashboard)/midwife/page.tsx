@@ -2,20 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
-import { Users, Heart, Calendar, Syringe, AlertTriangle, CheckCircle, Clock, ArrowRight, Stethoscope, MessageSquare, Shield, Activity, BarChart3 } from 'lucide-react';
+import { Badge } from '@/components/ui';
+import { Users, Heart, Calendar, Syringe, AlertTriangle, CheckCircle, Clock, ArrowRight, Stethoscope, MessageSquare, Activity, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate, formatDateTime, cn } from '@/lib/utils';
+import DashboardHero from '@/components/layout/DashboardHero';
+
+interface Visit {
+  id: string;
+  visitDate: string;
+  visitType?: string;
+  mother?: { user?: { name?: string } } | null;
+}
 
 interface DashboardData {
   assignedMothers: number;
   activePregnancies: number;
   todayVisits: number;
-  upcomingVisits: any[];
+  upcomingVisits: Visit[];
   pendingVaccinations: number;
   completedVisitsThisMonth: number;
   highRiskCases: number;
-  pregnancyOverview: any[];
+  pregnancyOverview: Array<Record<string, unknown>>;
 }
 
 export default function MidwifeDashboard() {
@@ -56,51 +64,38 @@ export default function MidwifeDashboard() {
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="space-y-6 bg-[#F9FAFB] min-h-screen">
+    <div className="relative min-h-screen">
+      {/* Maternal Care Wallpaper Background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/admin-wallpaper.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          opacity: 0.12,
+        }}
+      />
+      {/* Soft gradient overlay for better contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/40 via-white/60 to-pink-50/40" />
+
+      <div className="space-y-6 relative z-10 min-h-screen">
       
-      {/* ── Hero Banner ── */}
-      {/* Mirrors admin page CTA style: bg-[#111827] with blue + pink overlays */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#111827] p-8 text-white">
-        {/* Homepage-style gradient overlays */}
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#1E40AF]/25 to-transparent pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-r from-[#F472B6]/15 to-transparent pointer-events-none" />
-
-        {/* Shimmer sweep */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
-        </div>
-
-        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div>
-            {/* Green "live" pill */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D1FAE5] mb-5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
-              </span>
-              <span className="text-[#10B981] text-xs font-semibold tracking-widest uppercase">Midwife Portal</span>
-            </div>
-
-            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-              {greeting}, {session?.user?.name} 👩‍⚕️
-            </h1>
-            {/* Gradient subtext */}
-            <p className="text-[#6B7280] text-base max-w-lg leading-relaxed font-light">
-              You have{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#F472B6] font-semibold">
-                {dashboardData?.todayVisits || 0} visits
-              </span>{' '}
-              scheduled for today on the CareNest system.
-            </p>
-          </div>
-
-          {/* Right side info chips */}
-          <div className="hidden lg:flex flex-col items-end gap-3 font-sans shrink-0">
+      <DashboardHero
+        title={`${greeting}, ${session?.user?.name} 👩‍⚕️`}
+        pillLabel="Midwife Portal"
+        pillColorClass="text-[#10B981]"
+        subtitle={(
+          <>
+            You have <span className="font-semibold text-white">{dashboardData?.todayVisits || 0} visits</span> scheduled for today on the CareNest system.
+          </>
+        )}
+        rightInfo={(
+          <>
             <div className="text-right">
               <p className="text-xs text-[#6B7280] mb-0.5">Today</p>
-              <p className="text-base font-semibold text-white">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-              </p>
+              <p className="text-base font-semibold text-white">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-[#D1FAE5]/10 border border-[#10B981]/20 rounded-full">
@@ -112,9 +107,9 @@ export default function MidwifeDashboard() {
                 <span className="text-xs text-[#3B82F6] font-medium">Midwife</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </>
+        )}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -185,7 +180,7 @@ export default function MidwifeDashboard() {
           {/* Content */}
           {dashboardData?.upcomingVisits && dashboardData.upcomingVisits.length > 0 ? (
             <div className="divide-y divide-[#F9FAFB]">
-              {dashboardData.upcomingVisits.map((visit: any, idx: number) => {
+              {dashboardData.upcomingVisits.map((visit: Visit, idx: number) => {
                 // Cycle avatar styles like admin list
                 const avatarStyles = [
                   { bg: 'bg-blue-50', text: 'text-[#2563EB]', border: 'border-blue-100' },
@@ -343,7 +338,7 @@ export default function MidwifeDashboard() {
           </div>
 
           <div className="p-6 space-y-4">
-            {dashboardData.pregnancyOverview.map((item: any, idx: number) => {
+            {dashboardData.pregnancyOverview.map((item: Record<string, unknown> & { id?: string; highRisk?: boolean }, idx: number) => {
               // Cycle avatar styles
               const avatarStyles = [
                 { bg: 'bg-blue-50', text: 'text-[#2563EB]', border: 'border-blue-100' },
@@ -438,6 +433,7 @@ export default function MidwifeDashboard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -472,7 +468,7 @@ function StatCard({
             <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest">Live</span>
           </div>
         </div>
-        <p className="text-sm font-bold text-gray-700 mb-1">{title}</p>
+        <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-widest mb-1">{title}</p>
         <p className={`text-3xl font-extrabold ${valueColor} animate-count-up`}>{value}</p>
       </div>
     </div>

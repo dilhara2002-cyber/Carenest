@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     // so we force download (attachment) if we don't know the type, otherwise inline.
     const disposition = contentType === 'application/octet-stream' ? 'attachment' : 'inline';
 
-    return new NextResponse(buffer, {
+    return new NextResponse(Buffer.from(buffer), {
       status: 200,
       headers: {
         'Content-Type': contentType,

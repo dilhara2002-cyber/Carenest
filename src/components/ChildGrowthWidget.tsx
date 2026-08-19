@@ -475,8 +475,8 @@ export default function ChildGrowthWidget() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           {/* Title + child info */}
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-teal-100 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-teal-600" />
+            <div className="p-1.5 bg-blue-100 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
             <div>
               <CardTitle className="leading-none">Child Growth Tracker</CardTitle>
@@ -517,8 +517,8 @@ export default function ChildGrowthWidget() {
                       key={c.id}
                       type="button"
                       onClick={() => { setSelectedId(c.id); setDropdownOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-teal-50 transition-colors ${
-                        c.id === selectedId ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-700'
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 transition-colors ${
+                        c.id === selectedId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
                       }`}
                     >
                       <span className="font-medium">{c.name}</span>
