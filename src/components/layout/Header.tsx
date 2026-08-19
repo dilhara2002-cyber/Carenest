@@ -423,6 +423,7 @@ export function Header() {
             <div className="flex gap-3 border-t pt-4">
               <button
                 onClick={handleCloseProfile}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Close

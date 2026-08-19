@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Input, Select, Textarea, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
-import { Calendar, Plus, CheckCircle, Clock, XCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { Calendar, Plus, CheckCircle, Clock, XCircle, AlertTriangle, Sparkles, RefreshCw } from 'lucide-react';
+import DashboardHero from '@/components/layout/DashboardHero';
 import { formatDate, formatDateTime } from '@/lib/utils';
 
 interface Child {
@@ -609,19 +610,49 @@ export default function VisitsPage() {
   const pastPostnatal = postnatalVisits.filter(v => v.status !== 'SCHEDULED' || new Date(v.visitDate) < new Date());
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Visit Management</h1>
-          <p className="text-gray-500">Schedule and track prenatal & postnatal visits</p>
-        </div>
-        {session?.user?.role !== 'MOTHER' && (
-          <Button onClick={() => setShowModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Schedule Visit
-          </Button>
-        )}
-      </div>
+    <div className="relative min-h-screen">
+      {/* Maternal Care Wallpaper Background */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'url(/admin-wallpaper.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          opacity: 0.12,
+        }}
+      />
+      {/* Soft gradient overlay for better contrast */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-blue-50/40 via-white/60 to-pink-50/40" />
+
+      <div className="space-y-6 relative z-10">
+        <DashboardHero
+          title="Visit Management"
+          subtitle="Schedule and track prenatal & postnatal visits"
+          pillLabel="Visits"
+          actions={(
+            <>
+              <Button
+                variant="outline"
+                className="!bg-white hover:!bg-gray-100 !text-gray-900 font-bold rounded-xl !border !border-gray-200 shadow-sm transition-all cursor-pointer"
+                onClick={fetchVisits}
+              >
+                <RefreshCw className="h-4 w-4 mr-2 text-gray-700" />
+                Refresh
+              </Button>
+              {session?.user?.role !== 'MOTHER' && (
+                <Button
+                  className="bg-[#2563EB] hover:bg-[#1E40AF] text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-lg transition-all"
+                  onClick={() => setShowModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Schedule Visit
+                </Button>
+              )}
+            </>
+          )}
+        />
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
@@ -1099,6 +1130,7 @@ export default function VisitsPage() {
           </div>
         </form>
       </Modal>
+      </div>
     </div>
   );
 }
