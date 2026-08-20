@@ -19,6 +19,12 @@ model User {
   profileImage            String?
   language                String         @default("en")
   isActive                Boolean        @default(true)
+  notifyVisitReminders    Boolean        @default(true)
+  notifyVaccinationAlerts Boolean        @default(true)
+  notifyChatMessages      Boolean        @default(true)
+  notifySystemUpdates     Boolean        @default(true)
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
   notifyChatMessages      Boolean        @default(true)
@@ -44,6 +50,17 @@ model Mother {
   emergencyName          String?
   medicalHistory         String?
   allergies              String?
+  mohRegistrationNumber  String?
+  mohRegNumber           String                  @default("")
+  nicNumber              String                  @default("")
+  height                 Decimal?                @db.Decimal(5, 2)
+  assignedMidwifeId      String?
+  needsSpecialAttention  Boolean                 @default(false)
+  latitude               Decimal?                @db.Decimal(10, 7)
+  longitude              Decimal?                @db.Decimal(10, 7)
+  locationUpdatedAt      DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
   assignedMidwifeId      String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
@@ -116,6 +133,10 @@ model Child {
   birthPlace             String?
   healthNotes            String?
   image                  String?
+  isPreterm              Boolean                 @default(false)
+  gestationalAgeWeeks    Int?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   gestationalAgeWeeks    Int?
@@ -139,6 +160,15 @@ model GrowthRecord {
   headCircumference  Decimal? @db.Decimal(5, 2)
   bmi                Decimal? @db.Decimal(5, 2)
   notes              String?
+  ageMonths          Int?
+  correctedAgeMonths Int?
+  zScoreWeight       Decimal? @db.Decimal(5, 2)
+  zScoreHeight       Decimal? @db.Decimal(5, 2)
+  zScoreBmi          Decimal? @db.Decimal(5, 2)
+  weightStatus       String?
+  heightStatus       String?
+  bmiStatus          String?
+  createdAt          DateTime @default(now())
   createdAt          DateTime @default(now())
   ageMonths          Int?
   bmiStatus          String?
@@ -190,6 +220,8 @@ model Visit {
   isPostnatalMandatory Boolean     @default(false)
   isMohVisitRequired   Boolean     @default(false)
   childId              String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
   child                Child?      @relation(fields: [childId], references: [id])
   midwife              Midwife     @relation(fields: [midwifeId], references: [id], onDelete: Cascade)
   mother               Mother      @relation(fields: [motherId], references: [id], onDelete: Cascade)
